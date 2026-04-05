@@ -1,0 +1,123 @@
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.4s ease-out;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.videoWrap {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-card);
+  box-shadow: 0 0 40px var(--accent-glow);
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noVideo {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 40px var(--accent-glow);
+}
+
+.bigEmoji {
+  font-size: 80px;
+}
+
+.dialogueBubble {
+  width: 100%;
+  padding: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--accent);
+}
+
+.dialogueText {
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.userMessage {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+}
+
+.youLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.userText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px 24px;
+}
+
+.againBtn {
+  flex: 2;
+  padding: 16px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  transition: transform 0.1s;
+}
+
+.againBtn:active {
+  transform: scale(0.98);
+}
+
+.homeBtn {
+  flex: 1;
+  padding: 16px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: var(--radius);
+  transition: transform 0.1s;
+}
+
+.homeBtn:active {
+  transform: scale(0.98);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}

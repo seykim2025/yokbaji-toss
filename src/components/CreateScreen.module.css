@@ -1,0 +1,222 @@
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 12px;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border-radius: 50%;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.spacer {
+  width: 36px;
+}
+
+.form {
+  flex: 1;
+  padding: 0 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.photoUpload {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px dashed var(--border);
+  overflow: hidden;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.photoUpload:active {
+  border-color: var(--accent);
+}
+
+.photoPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.cameraIcon {
+  font-size: 28px;
+}
+
+.nameInput {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.nameInput::placeholder {
+  color: var(--text-muted);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.personalityGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.personalityCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.personalityCard.selected {
+  border-color: var(--accent);
+  background: rgba(255, 77, 109, 0.08);
+}
+
+.personalityCard:active {
+  background: var(--bg-input);
+}
+
+.personalityEmoji {
+  font-size: 28px;
+}
+
+.personalityLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.personalityDesc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.genderRow {
+  display: flex;
+  gap: 8px;
+}
+
+.genderBtn {
+  flex: 1;
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.genderBtn.selected {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.error {
+  font-size: 14px;
+  color: #ef4444;
+  text-align: center;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 16px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  margin-top: auto;
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+}
+
+.submitActive {
+  background: var(--accent);
+  color: #fff;
+}
+
+.submitActive:active {
+  transform: scale(0.98);
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
