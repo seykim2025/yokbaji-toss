@@ -44,7 +44,7 @@ export default function CreateScreen({ onBack, onCreated }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const character = await createCharacter(image, personality, gender, name || "Unnamed");
+      const character = await createCharacter(image, personality, gender, name);
       onCreated(character.id);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create character");

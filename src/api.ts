@@ -2,6 +2,35 @@ import type { Character, ReactionResult } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://yokbaji-engine.vercel.app";
 
+const LOCAL_CHAR_IDS_KEY = "yokbaji_character_ids";
+
+function getSavedCharacterIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(LOCAL_CHAR_IDS_KEY);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveCharacterId(id: string): void {
+  const ids = getSavedCharacterIds();
+  ids.add(id);
+  localStorage.setItem(LOCAL_CHAR_IDS_KEY, JSON.stringify([...ids]));
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapCharacter(raw: any): Character {
+  return {
+    id: raw.character_id,
+    name: raw.name || "Unnamed",
+    personality_type: raw.personality_type,
+    gender_type: raw.gender_type,
+    image_path: raw.image_path,
+    created_at: raw.created_at,
+  };
+}
+
 export async function createCharacter(
   image: File,
   personalityType: string,
@@ -22,20 +51,28 @@ export async function createCharacter(
     const err = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(err.error || `HTTP ${res.status}`);
   }
-  return res.json();
+  const raw = await res.json();
+  const character = mapCharacter(raw);
+  saveCharacterId(character.id);
+  return character;
 }
 
 export async function listCharacters(): Promise<Character[]> {
+  const savedIds = getSavedCharacterIds();
+  if (savedIds.size === 0) return [];
   const res = await fetch(`${API_BASE}/api/characters`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  return data.characters;
+  return (data.characters as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .filter((raw) => savedIds.has(raw.character_id))
+    .map(mapCharacter);
 }
 
 export async function getCharacter(id: string): Promise<Character> {
   const res = await fetch(`${API_BASE}/api/characters/${id}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const raw = await res.json();
+  return mapCharacter(raw);
 }
 
 export async function generateReaction(
