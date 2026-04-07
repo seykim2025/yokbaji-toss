@@ -11,7 +11,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 24px 20px 16px;
+  padding: 20px 16px 14px;
   gap: 12px;
 }
 
@@ -22,9 +22,9 @@
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -1px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
   color: var(--accent);
 }
 
@@ -99,8 +99,8 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 8px 20px 24px;
+  gap: 10px;
+  padding: 8px 16px 24px;
 }
 
 /* ── Character card ── */
