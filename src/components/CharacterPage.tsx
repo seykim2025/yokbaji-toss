@@ -21,10 +21,10 @@ const PERSONALITY_COLOR: Record<string, string> = {
 };
 
 const PERSONALITY_LABEL: Record<string, string> = {
-  WEAK: "Weak",
-  ANGRY: "Angry",
-  SARCASTIC: "Sarcastic",
-  STOIC: "Stoic",
+  WEAK: "약함",
+  ANGRY: "분노",
+  SARCASTIC: "비꼼",
+  STOIC: "냉정",
 };
 
 function getImageUrl(path: string): string {
@@ -54,7 +54,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
       setPageState("done");
       setMessage("");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to generate reaction");
+      setError(err instanceof Error ? err.message : "리액션 생성 실패");
       setPageState("error");
     }
   }
@@ -73,13 +73,13 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
       {/* Header */}
       <header className={styles.header}>
         <button className={styles.backBtn} onClick={onBack}>←</button>
-        <span className={styles.headerName}>{character.name || "Unnamed"}</span>
+        <span className={styles.headerName}>{character.name || "이름 없음"}</span>
         <div className={styles.headerRight}>
           <div className={styles.tokenDisplay}>
             <span className={styles.tokenIcon}>🪙</span>
             <span className={styles.tokenCount}>{tokens.toLocaleString()}</span>
           </div>
-          <button className={styles.chargeBtn} onClick={onCharge}>Top Up</button>
+          <button className={styles.chargeBtn} onClick={onCharge}>충전</button>
           <button className={styles.homeBtn} onClick={onHome}>🏠</button>
         </div>
       </header>
@@ -106,7 +106,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
             >
               {personalityLabel}
             </span>
-            <p className={styles.idlePrompt}>Let it all out.</p>
+            <p className={styles.idlePrompt}>감정을 쏟아내 버려요</p>
           </div>
         )}
 
@@ -126,7 +126,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
             </div>
             <div className={styles.loadingLabel}>
               <span className={styles.spinner} />
-              <span>Hold on...</span>
+              <span>잠깐만...</span>
             </div>
           </div>
         )}
@@ -153,7 +153,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
               <p className={styles.dialogueText}>{reaction.dialogue}</p>
             </div>
             <div className={styles.userEcho}>
-              <span className={styles.youLabel}>You:</span>
+              <span className={styles.youLabel}>나:</span>
               <p className={styles.userText}>{reaction.user_message}</p>
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
         <div className={styles.inputArea}>
           <textarea
             className={styles.textarea}
-            placeholder="Type your feelings..."
+            placeholder="감정을 입력하세요..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
