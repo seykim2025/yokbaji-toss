@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
-import type { Personality, Gender } from "../types";
+import type { Personality, Gender, Character } from "../types";
 import { createCharacter } from "../api";
 import styles from "./CreateScreen.module.css";
 
 interface Props {
   onBack: () => void;
-  onCreated: (characterId: string) => void;
+  onCreated: (character: Character) => void;
 }
 
 const PERSONALITIES: { value: Personality; label: string; emoji: string; desc: string }[] = [
@@ -45,7 +45,7 @@ export default function CreateScreen({ onBack, onCreated }: Props) {
     setError(null);
     try {
       const character = await createCharacter(image, personality, gender, name);
-      onCreated(character.id);
+      onCreated(character);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create character");
     } finally {

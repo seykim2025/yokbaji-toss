@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import type { AppScreen, Character, ReactionResult } from "./types";
-import { getCharacter } from "./api";
 import HomeScreen from "./components/HomeScreen";
 import CreateScreen from "./components/CreateScreen";
 import ChatScreen from "./components/ChatScreen";
@@ -23,8 +22,7 @@ export default function App() {
     setScreen("chat");
   }, []);
 
-  const handleCreated = useCallback(async (characterId: string) => {
-    const c = await getCharacter(characterId);
+  const handleCreated = useCallback((c: Character) => {
     setCharacter(c);
     setScreen("chat");
   }, []);
