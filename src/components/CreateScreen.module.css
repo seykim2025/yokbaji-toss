@@ -31,8 +31,50 @@
   text-align: center;
 }
 
-.spacer {
-  width: 36px;
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tokenDisplay {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--bg-secondary);
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+
+.tokenIcon {
+  font-size: 12px;
+}
+
+.tokenCount {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chargeBtn {
+  padding: 5px 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+.homeBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-radius: 50%;
+  font-size: 14px;
 }
 
 .form {

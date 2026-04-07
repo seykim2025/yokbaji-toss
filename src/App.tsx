@@ -1,72 +1,72 @@
 import { useState, useCallback } from "react";
-import type { AppScreen, Character, ReactionResult } from "./types";
+import type { AppScreen, Character } from "./types";
 import HomeScreen from "./components/HomeScreen";
 import CreateScreen from "./components/CreateScreen";
-import ChatScreen from "./components/ChatScreen";
-import ReactionScreen from "./components/ReactionScreen";
+import CharacterPage from "./components/CharacterPage";
+import TokenPage from "./components/TokenPage";
 import "./index.css";
+
+const MOCK_TOKENS = 100;
 
 export default function App() {
   const [screen, setScreen] = useState<AppScreen>("home");
   const [character, setCharacter] = useState<Character | null>(null);
-  const [reaction, setReaction] = useState<ReactionResult | null>(null);
+  const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
+  const [tokens] = useState(MOCK_TOKENS);
 
   const goHome = useCallback(() => {
     setScreen("home");
     setCharacter(null);
-    setReaction(null);
   }, []);
+
+  const goToken = useCallback(() => {
+    setPrevScreen(screen);
+    setScreen("token");
+  }, [screen]);
 
   const handleSelectCharacter = useCallback((c: Character) => {
     setCharacter(c);
-    setScreen("chat");
+    setScreen("character");
   }, []);
 
   const handleCreated = useCallback((c: Character) => {
     setCharacter(c);
-    setScreen("chat");
-  }, []);
-
-  const handleReaction = useCallback((result: ReactionResult) => {
-    setReaction(result);
-    setScreen("reaction");
-  }, []);
-
-  const handleAgain = useCallback(() => {
-    setReaction(null);
-    setScreen("chat");
+    setScreen("character");
   }, []);
 
   switch (screen) {
     case "home":
       return (
         <HomeScreen
+          tokens={tokens}
           onCreateNew={() => setScreen("create")}
           onSelectCharacter={handleSelectCharacter}
+          onCharge={goToken}
         />
       );
     case "create":
       return (
         <CreateScreen
+          tokens={tokens}
           onBack={goHome}
           onCreated={handleCreated}
-        />
-      );
-    case "chat":
-      return character ? (
-        <ChatScreen
-          character={character}
-          onBack={goHome}
-          onReaction={handleReaction}
-        />
-      ) : null;
-    case "reaction":
-      return reaction ? (
-        <ReactionScreen
-          result={reaction}
-          onAgain={handleAgain}
+          onCharge={goToken}
           onHome={goHome}
         />
+      );
+    case "character":
+      return character ? (
+        <CharacterPage
+          character={character}
+          tokens={tokens}
+          onBack={goHome}
+          onHome={goHome}
+          onCharge={goToken}
+        />
       ) : null;
+    case "token":
+      return (
+        <TokenPage onBack={() => setScreen(prevScreen)} />
+      );
   }
 }

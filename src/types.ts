@@ -19,4 +19,4 @@ export interface ReactionResult {
   cached: boolean;
 }
 
-export type AppScreen = "home" | "create" | "chat" | "reaction";
+export type AppScreen = "home" | "create" | "character" | "token";

@@ -1,6 +1,6 @@
 import type { Character, ReactionResult } from "./types";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://yokbaji-engine.vercel.app";
+export const API_BASE = import.meta.env.VITE_API_URL || "https://yokbaji-engine.vercel.app";
 
 const LOCAL_CHAR_IDS_KEY = "yokbaji_character_ids";
 
@@ -16,6 +16,12 @@ function getSavedCharacterIds(): Set<string> {
 function saveCharacterId(id: string): void {
   const ids = getSavedCharacterIds();
   ids.add(id);
+  localStorage.setItem(LOCAL_CHAR_IDS_KEY, JSON.stringify([...ids]));
+}
+
+export function deleteCharacterLocally(id: string): void {
+  const ids = getSavedCharacterIds();
+  ids.delete(id);
   localStorage.setItem(LOCAL_CHAR_IDS_KEY, JSON.stringify([...ids]));
 }
 
