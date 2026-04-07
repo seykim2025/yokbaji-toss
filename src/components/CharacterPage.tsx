@@ -60,7 +60,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSend();
     }
@@ -73,7 +73,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
       {/* Header */}
       <header className={styles.header}>
         <button className={styles.backBtn} onClick={onBack}>←</button>
-        <span className={styles.headerName}>{character.name || "이름 없음"}</span>
+        <span className={styles.headerName}>{(character.name && character.name !== "Unnamed") ? character.name : "이름 없음"}</span>
         <div className={styles.headerRight}>
           <div className={styles.tokenDisplay}>
             <span className={styles.tokenIcon}>🪙</span>

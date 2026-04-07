@@ -102,6 +102,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           placeholder="이름 (선택)"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onCompositionEnd={(e) => setName((e.target as HTMLInputElement).value)}
           maxLength={30}
         />
 

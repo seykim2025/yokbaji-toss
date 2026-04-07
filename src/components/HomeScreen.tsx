@@ -111,7 +111,7 @@ export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onC
                 </button>
               </div>
               <div className={styles.cardFooter}>
-                <span className={styles.cardName}>{c.name || "이름 없음"}</span>
+                <span className={styles.cardName}>{(c.name && c.name !== "Unnamed") ? c.name : "이름 없음"}</span>
                 <span
                   className={styles.personalityBadge}
                   style={{ background: PERSONALITY_COLOR[c.personality_type] + "22", color: PERSONALITY_COLOR[c.personality_type] }}
