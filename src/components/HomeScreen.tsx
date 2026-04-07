@@ -18,10 +18,10 @@ const PERSONALITY_COLOR: Record<string, string> = {
 };
 
 const PERSONALITY_LABEL: Record<string, string> = {
-  WEAK: "Weak",
-  ANGRY: "Angry",
-  SARCASTIC: "Sarcastic",
-  STOIC: "Stoic",
+  WEAK: "약함",
+  ANGRY: "분노",
+  SARCASTIC: "비꼼",
+  STOIC: "냉정",
 };
 
 const TOTAL_FREE_SLOTS = 5;
@@ -63,15 +63,15 @@ export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onC
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.titleArea}>
-          <h1 className={styles.title}>yokbaji</h1>
-          <p className={styles.subtitle}>Let it all out.</p>
+          <h1 className={styles.title}>욕바지</h1>
+          <p className={styles.subtitle}>감정을 쏟아내 버려요</p>
         </div>
         <div className={styles.tokenBar}>
           <div className={styles.tokenDisplay}>
             <span className={styles.tokenIcon}>🪙</span>
             <span className={styles.tokenCount}>{tokens.toLocaleString()}</span>
           </div>
-          <button className={styles.chargeBtn} onClick={onCharge}>Top Up</button>
+          <button className={styles.chargeBtn} onClick={onCharge}>충전</button>
         </div>
       </header>
 
@@ -105,13 +105,13 @@ export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onC
                 <button
                   className={styles.deleteBtn}
                   onClick={(e) => handleDelete(e, c.id)}
-                  aria-label="Delete"
+                  aria-label="삭제"
                 >
                   ✕
                 </button>
               </div>
               <div className={styles.cardFooter}>
-                <span className={styles.cardName}>{c.name || "Unnamed"}</span>
+                <span className={styles.cardName}>{c.name || "이름 없음"}</span>
                 <span
                   className={styles.personalityBadge}
                   style={{ background: PERSONALITY_COLOR[c.personality_type] + "22", color: PERSONALITY_COLOR[c.personality_type] }}
@@ -136,7 +136,7 @@ export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onC
           {/* Add slot button (always last) */}
           <button className={styles.addSlotCard} onClick={onCharge}>
             <span className={styles.addSlotIcon}>＋</span>
-            <span className={styles.addSlotLabel}>Add Slot</span>
+            <span className={styles.addSlotLabel}>슬롯 추가</span>
             <span className={styles.addSlotCost}>10 🪙</span>
           </button>
         </div>
