@@ -12,16 +12,16 @@ interface Props {
 }
 
 const PERSONALITIES: { value: Personality; label: string; emoji: string; desc: string }[] = [
-  { value: "ANGRY", label: "분노", emoji: "\uD83D\uDE21", desc: "강하게 맞받아침" },
-  { value: "SARCASTIC", label: "비꼼", emoji: "\uD83D\uDE0F", desc: "날카로운 조롱" },
-  { value: "WEAK", label: "약함", emoji: "\uD83D\uDE22", desc: "울고 애원함" },
-  { value: "STOIC", label: "냉정", emoji: "\uD83D\uDE10", desc: "거의 반응 없음" },
+  { value: "ANGRY", label: "Angry", emoji: "\uD83D\uDE21", desc: "Fights back hard" },
+  { value: "SARCASTIC", label: "Sarcastic", emoji: "\uD83D\uDE0F", desc: "Witty comebacks" },
+  { value: "WEAK", label: "Weak", emoji: "\uD83D\uDE22", desc: "Cries and begs" },
+  { value: "STOIC", label: "Stoic", emoji: "\uD83D\uDE10", desc: "Barely reacts" },
 ];
 
 const GENDERS: { value: Gender; label: string }[] = [
-  { value: "M", label: "남" },
-  { value: "F", label: "여" },
-  { value: "N", label: "중립" },
+  { value: "M", label: "Male" },
+  { value: "F", label: "Female" },
+  { value: "N", label: "Neutral" },
 ];
 
 export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHome }: Props) {
@@ -62,13 +62,13 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
     <div className={styles.container}>
       <header className={styles.header}>
         <button className={styles.backBtn} onClick={onBack}>←</button>
-        <h2 className={styles.title}>캐릭터 생성</h2>
+        <h2 className={styles.title}>Create Character</h2>
         <div className={styles.headerRight}>
           <div className={styles.tokenDisplay}>
             <span className={styles.tokenIcon}>🪙</span>
             <span className={styles.tokenCount}>{tokens.toLocaleString()}</span>
           </div>
-          <button className={styles.chargeBtn} onClick={onCharge}>충전</button>
+          <button className={styles.chargeBtn} onClick={onCharge}>Top Up</button>
           <button className={styles.homeBtn} onClick={onHome}>🏠</button>
         </div>
       </header>
@@ -84,7 +84,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           ) : (
             <div className={styles.photoPlaceholder}>
               <span className={styles.cameraIcon}>{"\uD83D\uDCF7"}</span>
-              <span>사진 업로드</span>
+              <span>Upload photo</span>
             </div>
           )}
         </button>
@@ -99,7 +99,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
         {/* Name */}
         <input
           className={styles.nameInput}
-          placeholder="이름 (선택)"
+          placeholder="Name (optional)"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={30}
@@ -107,7 +107,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
 
         {/* Personality */}
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>성격</label>
+          <label className={styles.sectionLabel}>Personality</label>
           <div className={styles.personalityGrid}>
             {PERSONALITIES.map((p) => (
               <button
@@ -125,7 +125,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
 
         {/* Gender */}
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>성별</label>
+          <label className={styles.sectionLabel}>Gender</label>
           <div className={styles.genderRow}>
             {GENDERS.map((g) => (
               <button
@@ -149,7 +149,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           {loading ? (
             <span className={styles.spinner} />
           ) : (
-            "생성하기"
+            "Create Character"
           )}
         </button>
       </div>
