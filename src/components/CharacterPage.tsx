@@ -1,6 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Character, ReactionResult } from "../types";
-import { generateReaction, API_BASE, setLastUsed, getFreeCount, incrementFreeCount, isFreeExhausted, FREE_LIMIT } from "../api";
+import {
+  generateReaction, API_BASE, setLastUsed,
+  getFreeCount, incrementFreeCount, isFreeExhausted, FREE_LIMIT,
+  saveConversation, getConversations,
+} from "../api";
+import type { ConversationRecord } from "../api";
 import styles from "./CharacterPage.module.css";
 
 interface Props {
@@ -90,6 +95,21 @@ function getImageUrl(path: string): string {
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays === 0) {
+    return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  } else if (diffDays === 1) {
+    return "어제";
+  } else if (diffDays < 7) {
+    return `${diffDays}일 전`;
+  }
+  return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
+}
+
 export default function CharacterPage({ character, tokens, onBack, onHome, onCharge }: Props) {
   const [message, setMessage] = useState("");
   const [pageState, setPageState] = useState<PageState>("idle");
@@ -101,6 +121,16 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
   const [freeCount, setFreeCount] = useState(() => getFreeCount(character.id));
   const waitingLineRef = useRef<string>(waitingLine);
   const waitingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Conversation history
+  const [showHistory, setShowHistory] = useState(false);
+  const [conversations, setConversations] = useState<ConversationRecord[]>(() =>
+    getConversations(character.id)
+  );
+  const [selectedConv, setSelectedConv] = useState<ConversationRecord | null>(null);
+
+  // Engine debug panel
+  const [showDebug, setShowDebug] = useState(false);
 
   const isLoading = pageState === "loading";
   const personalityColor = PERSONALITY_COLOR[character.personality_type] || "#6b7280";
@@ -133,6 +163,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
     setWaitingLine(initial);
     setPageState("loading");
     setError(null);
+    setSelectedConv(null);
     try {
       const result = await generateReaction(character.id, text);
       setReaction(result);
@@ -141,6 +172,9 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
       const newCount = incrementFreeCount(character.id);
       setFreeCount(newCount);
       setLastUsed(character.id);
+      // Save to history
+      saveConversation(character.id, text, result.dialogue, result.video_url);
+      setConversations(getConversations(character.id));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "리액션 생성 실패");
       setPageState("error");
@@ -154,8 +188,28 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
     }
   }
 
+  const handleSelectConv = useCallback((conv: ConversationRecord) => {
+    setSelectedConv(conv);
+    setReaction({
+      character_id: character.id,
+      user_message: conv.userMessage,
+      dialogue: conv.dialogue,
+      video_url: conv.videoUrl,
+      personality_type: character.personality_type,
+      cached: false,
+    });
+    setPageState("done");
+    setShowHistory(false);
+  }, [character.id, character.personality_type]);
+
   const imageUrl = getImageUrl(character.image_path);
   const displayName = (character.name && character.name !== "Unnamed") ? character.name : "이름 없음";
+
+  // Paid conversation count estimate (1 token = 1 conversation)
+  const paidCountAvailable = tokens;
+
+  // Current reaction data for debug (either live or selected history)
+  const debugReaction = reaction;
 
   return (
     <div className={styles.container}>
@@ -164,6 +218,13 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
         <button className={styles.backBtn} onClick={onBack}>←</button>
         <span className={styles.headerName}>{displayName}</span>
         <div className={styles.headerRight}>
+          <button
+            className={styles.historyBtn}
+            onClick={() => setShowHistory(true)}
+            title="지난 대화 보기"
+          >
+            📋
+          </button>
           <div className={styles.tokenDisplay}>
             <span className={styles.tokenIcon}>🪙</span>
             <span className={styles.tokenCount}>{tokens.toLocaleString()}</span>
@@ -172,6 +233,34 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
           <button className={styles.homeBtn} onClick={onHome}>🏠</button>
         </div>
       </header>
+
+      {/* Engine debug panel */}
+      {debugReaction && (
+        <div className={styles.debugPanel}>
+          <button
+            className={styles.debugToggle}
+            onClick={() => setShowDebug((v) => !v)}
+          >
+            🛠 엔진 피드백 {showDebug ? "▲" : "▼"}
+          </button>
+          {showDebug && (
+            <div className={styles.debugContent}>
+              <div className={styles.debugRow}>
+                <span className={styles.debugLabel}>요청</span>
+                <span className={styles.debugValue}>{debugReaction.user_message}</span>
+              </div>
+              <div className={styles.debugRow}>
+                <span className={styles.debugLabel}>응답</span>
+                <span className={styles.debugValue}>{debugReaction.dialogue}</span>
+              </div>
+              <div className={styles.debugRow}>
+                <span className={styles.debugLabel}>캐시</span>
+                <span className={styles.debugValue}>{debugReaction.cached ? "hit" : "miss"}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Body */}
       <div className={styles.body}>
@@ -196,6 +285,11 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
               {personalityLabel}
             </span>
             <p className={styles.idlePrompt}>감정을 쏟아내 버려요</p>
+            {conversations.length > 0 && (
+              <button className={styles.historyLinkBtn} onClick={() => setShowHistory(true)}>
+                지난 대화 보기 ({conversations.length})
+              </button>
+            )}
           </div>
         )}
 
@@ -222,7 +316,17 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
 
         {(pageState === "done" || pageState === "error") && reaction && (
           <div className={styles.reactionView}>
-            {/* User input first */}
+            {selectedConv && (
+              <div className={styles.historyNotice}>
+                <span>📋 {formatTimestamp(selectedConv.timestamp)}의 대화</span>
+                <button className={styles.historyNoticeClose} onClick={() => {
+                  setSelectedConv(null);
+                  setReaction(null);
+                  setPageState("idle");
+                }}>✕</button>
+              </div>
+            )}
+            {/* User input */}
             <div className={styles.userEcho}>
               <span className={styles.youLabel}>나:</span>
               <p className={styles.userText}>{reaction.user_message}</p>
@@ -265,11 +369,11 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
         )}
       </div>
 
-      {/* Free count indicator */}
+      {/* Free/paid count bar */}
       {pageState !== "loading" && (
         <div className={styles.freeCountBar}>
           {isPaid ? (
-            <span className={styles.paidLabel}>🪙 유료 대화 모드</span>
+            <span className={styles.paidLabel}>🪙 유료 대화 모드 · {paidCountAvailable}건 가능</span>
           ) : (
             <span className={styles.freeLabel}>무료 대화 {FREE_LIMIT - freeCount}/{FREE_LIMIT}</span>
           )}
@@ -305,6 +409,34 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
               ↑
             </button>
           )}
+        </div>
+      )}
+
+      {/* History drawer */}
+      {showHistory && (
+        <div className={styles.historyOverlay} onClick={() => setShowHistory(false)}>
+          <div className={styles.historyPanel} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.historyHeader}>
+              <span className={styles.historyTitle}>지난 대화</span>
+              <button className={styles.historyClose} onClick={() => setShowHistory(false)}>✕</button>
+            </div>
+            <div className={styles.historyList}>
+              {conversations.length === 0 ? (
+                <p className={styles.historyEmpty}>아직 대화 기록이 없어요.</p>
+              ) : (
+                conversations.map((conv) => (
+                  <button
+                    key={conv.id}
+                    className={styles.historyItem}
+                    onClick={() => handleSelectConv(conv)}
+                  >
+                    <p className={styles.historyItemMsg}>{conv.userMessage}</p>
+                    <span className={styles.historyItemTime}>{formatTimestamp(conv.timestamp)}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

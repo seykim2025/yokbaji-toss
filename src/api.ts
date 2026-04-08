@@ -5,7 +5,72 @@ export const API_BASE = import.meta.env.VITE_API_URL || "https://yokbaji-engine.
 const LOCAL_CHAR_IDS_KEY = "yokbaji_character_ids";
 const LOCAL_LAST_USED_KEY = "yokbaji_last_used";
 const LOCAL_FREE_COUNT_KEY = "yokbaji_free_count";
+const LOCAL_SLOT_COUNT_KEY = "yokbaji_slot_count";
+const LOCAL_CONVERSATIONS_KEY = "yokbaji_conversations";
 export const FREE_LIMIT = 5;
+export const DEFAULT_SLOT_COUNT = 5;
+export const SLOT_ADD_COST = 10;
+
+// ── Slot management ──────────────────────────────────────────────────────────
+
+export function getSlotCount(): number {
+  try {
+    const raw = localStorage.getItem(LOCAL_SLOT_COUNT_KEY);
+    return raw ? parseInt(raw, 10) : DEFAULT_SLOT_COUNT;
+  } catch { return DEFAULT_SLOT_COUNT; }
+}
+
+export function incrementSlotCount(): number {
+  const next = getSlotCount() + 1;
+  localStorage.setItem(LOCAL_SLOT_COUNT_KEY, String(next));
+  return next;
+}
+
+// ── Conversation history ──────────────────────────────────────────────────────
+
+export interface ConversationRecord {
+  id: string;
+  characterId: string;
+  userMessage: string;
+  dialogue: string;
+  videoUrl: string | null;
+  timestamp: string;
+}
+
+export function saveConversation(
+  characterId: string,
+  userMessage: string,
+  dialogue: string,
+  videoUrl: string | null
+): void {
+  try {
+    const record: ConversationRecord = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      characterId,
+      userMessage,
+      dialogue,
+      videoUrl,
+      timestamp: new Date().toISOString(),
+    };
+    const raw = localStorage.getItem(LOCAL_CONVERSATIONS_KEY);
+    const all: ConversationRecord[] = raw ? JSON.parse(raw) : [];
+    const others = all.filter((r) => r.characterId !== characterId);
+    const mine = all.filter((r) => r.characterId === characterId);
+    mine.push(record);
+    // keep at most 100 per character
+    localStorage.setItem(LOCAL_CONVERSATIONS_KEY, JSON.stringify([...others, ...mine.slice(-100)]));
+  } catch { /* ignore */ }
+}
+
+export function getConversations(characterId: string): ConversationRecord[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_CONVERSATIONS_KEY);
+    const all: ConversationRecord[] = raw ? JSON.parse(raw) : [];
+    return all
+      .filter((r) => r.characterId === characterId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  } catch { return []; }
+}
 
 export function getLastUsed(): Record<string, string> {
   try {

@@ -5,8 +5,11 @@ import styles from "./HomeScreen.module.css";
 
 interface Props {
   tokens: number;
+  totalSlots: number;
+  version: string;
   onCreateNew: () => void;
   onSelectCharacter: (character: Character) => void;
+  onAddSlot: () => void;
   onCharge: () => void;
 }
 
@@ -24,15 +27,13 @@ const PERSONALITY_LABEL: Record<string, string> = {
   STOIC: "냉정",
 };
 
-const TOTAL_FREE_SLOTS = 5;
-
 function getImageUrl(path: string): string {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onCharge }: Props) {
+export default function HomeScreen({ tokens, totalSlots, version, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,14 +60,17 @@ export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onC
     setCharacters((prev) => prev.filter((c) => c.id !== id));
   }
 
-  const emptySlotCount = Math.max(0, TOTAL_FREE_SLOTS - characters.length);
+  const emptySlotCount = Math.max(0, totalSlots - characters.length);
 
   return (
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.titleArea}>
-          <h1 className={styles.title}>욕바지</h1>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>욕바지</h1>
+            <span className={styles.versionBadge}>{version}</span>
+          </div>
           <p className={styles.subtitle}>감정을 쏟아내 버려요</p>
         </div>
         <div className={styles.tokenBar}>
@@ -137,10 +141,10 @@ export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onC
           ))}
 
           {/* Add slot button (always last) */}
-          <button className={styles.addSlotCard} onClick={onCharge}>
+          <button className={styles.addSlotCard} onClick={onAddSlot}>
             <span className={styles.addSlotIcon}>＋</span>
             <span className={styles.addSlotLabel}>슬롯 추가</span>
-            <span className={styles.addSlotCost}>10 🪙</span>
+            <span className={styles.addSlotCost}>{10} 🪙</span>
           </button>
         </div>
       )}
