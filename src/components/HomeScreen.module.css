@@ -112,6 +112,7 @@
   overflow: hidden;
   text-align: left;
   transition: transform 0.15s;
+  aspect-ratio: 3 / 4;
 }
 
 .characterCard:active {
@@ -120,7 +121,8 @@
 
 .cardImageWrap {
   position: relative;
-  aspect-ratio: 1;
+  flex: 1;
+  min-height: 0;
   background: var(--bg-secondary);
   overflow: hidden;
 }
@@ -194,7 +196,7 @@
 
 /* ── Empty slot ── */
 .emptySlot {
-  aspect-ratio: 1;
+  aspect-ratio: 3 / 4;
   background: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 2px dashed var(--border);
@@ -217,7 +219,7 @@
 
 /* ── Add slot button ── */
 .addSlotCard {
-  aspect-ratio: 1;
+  aspect-ratio: 3 / 4;
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   border: 2px dashed var(--border);

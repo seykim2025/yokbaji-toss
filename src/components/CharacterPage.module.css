@@ -185,6 +185,11 @@
   gap: 10px;
   font-size: 16px;
   color: var(--text-secondary);
+  min-height: 28px;
+}
+
+.waitingText {
+  animation: fadeIn 0.4s ease-out;
 }
 
 .spinner {
@@ -295,6 +300,27 @@
   border-radius: var(--radius);
 }
 
+/* ── Free count bar ── */
+.freeCountBar {
+  padding: 6px 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.freeLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.paidLabel {
+  font-size: 12px;
+  color: #f59e0b;
+  font-weight: 600;
+}
+
 /* ── Input area ── */
 .inputArea {
   display: flex;
@@ -341,6 +367,16 @@
 }
 
 .sendActive:active {
+  transform: scale(0.92);
+}
+
+.sendPaid {
+  background: #d97706;
+  color: #fff;
+  font-size: 16px;
+}
+
+.sendPaid:active {
   transform: scale(0.92);
 }
 

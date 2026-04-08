@@ -3,6 +3,44 @@ import type { Character, ReactionResult } from "./types";
 export const API_BASE = import.meta.env.VITE_API_URL || "https://yokbaji-engine.vercel.app";
 
 const LOCAL_CHAR_IDS_KEY = "yokbaji_character_ids";
+const LOCAL_LAST_USED_KEY = "yokbaji_last_used";
+const LOCAL_FREE_COUNT_KEY = "yokbaji_free_count";
+export const FREE_LIMIT = 5;
+
+export function getLastUsed(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(LOCAL_LAST_USED_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+export function setLastUsed(characterId: string): void {
+  const map = getLastUsed();
+  map[characterId] = new Date().toISOString();
+  localStorage.setItem(LOCAL_LAST_USED_KEY, JSON.stringify(map));
+}
+
+export function getFreeCount(characterId: string): number {
+  try {
+    const raw = localStorage.getItem(LOCAL_FREE_COUNT_KEY);
+    const map: Record<string, number> = raw ? JSON.parse(raw) : {};
+    return map[characterId] ?? 0;
+  } catch { return 0; }
+}
+
+export function incrementFreeCount(characterId: string): number {
+  try {
+    const raw = localStorage.getItem(LOCAL_FREE_COUNT_KEY);
+    const map: Record<string, number> = raw ? JSON.parse(raw) : {};
+    map[characterId] = (map[characterId] ?? 0) + 1;
+    localStorage.setItem(LOCAL_FREE_COUNT_KEY, JSON.stringify(map));
+    return map[characterId];
+  } catch { return 0; }
+}
+
+export function isFreeExhausted(characterId: string): boolean {
+  return getFreeCount(characterId) >= FREE_LIMIT;
+}
 
 function getSavedCharacterIds(): Set<string> {
   try {

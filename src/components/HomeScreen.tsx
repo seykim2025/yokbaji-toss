@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, deleteCharacterLocally, API_BASE } from "../api";
+import { listCharacters, deleteCharacterLocally, API_BASE, getLastUsed } from "../api";
 import styles from "./HomeScreen.module.css";
 
 interface Props {
@@ -39,9 +39,12 @@ export default function HomeScreen({ tokens, onCreateNew, onSelectCharacter, onC
   const load = useCallback(() => {
     listCharacters()
       .then((list) => {
-        const sorted = [...list].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
+        const lastUsed = getLastUsed();
+        const sorted = [...list].sort((a, b) => {
+          const aTime = lastUsed[a.id] ?? a.created_at;
+          const bTime = lastUsed[b.id] ?? b.created_at;
+          return new Date(bTime).getTime() - new Date(aTime).getTime();
+        });
         setCharacters(sorted);
       })
       .catch(() => setCharacters([]))
