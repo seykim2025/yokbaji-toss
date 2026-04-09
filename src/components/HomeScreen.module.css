@@ -35,10 +35,15 @@
 }
 
 .versionBadge {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 600;
   color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 7px;
   letter-spacing: 0;
+  vertical-align: middle;
 }
 
 .subtitle {
