@@ -7,7 +7,7 @@ import TokenPage from "./components/TokenPage";
 import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
 import "./index.css";
 
-export const APP_VERSION = "v0.0.1";
+export const APP_VERSION = "v0.0.2";
 const INITIAL_TOKENS = 100;
 const DEFAULTS_V2_KEY = "yokbaji_defaults_v2_seeded";
 

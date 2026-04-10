@@ -2,6 +2,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: var(--bg-primary);
   animation: fadeIn 0.3s ease-out;
   position: relative;
 }
@@ -14,6 +15,7 @@
   gap: 8px;
   border-bottom: 1px solid var(--border);
   min-height: 56px;
+  background: var(--bg-secondary);
 }
 
 .backBtn {
@@ -22,7 +24,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: transparent;
   border-radius: 50%;
   color: var(--text-primary);
   font-size: 18px;
@@ -33,6 +35,7 @@
   flex: 1;
   font-size: 16px;
   font-weight: 600;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -51,7 +54,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border-radius: 50%;
   font-size: 14px;
 }
@@ -60,7 +63,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border-radius: 20px;
   padding: 4px 10px;
 }
@@ -90,7 +93,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border-radius: 50%;
   font-size: 14px;
 }
@@ -98,7 +101,7 @@
 /* ── Engine debug panel ── */
 .debugPanel {
   border-bottom: 1px solid var(--border);
-  background: #0d0d0d;
+  background: var(--bg-secondary);
   font-size: 12px;
 }
 
@@ -109,6 +112,7 @@
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 500;
+  background: transparent;
 }
 
 .debugContent {
@@ -127,7 +131,7 @@
 .debugLabel {
   font-size: 10px;
   font-weight: 600;
-  color: #f59e0b;
+  color: var(--accent);
   min-width: 28px;
   flex-shrink: 0;
   padding-top: 1px;
@@ -167,17 +171,18 @@
   height: 160px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border: 3px solid var(--border);
   flex-shrink: 0;
 }
 
 .historyLinkBtn {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--accent);
   text-decoration: underline;
   padding: 4px 0;
   margin-top: 4px;
+  background: transparent;
 }
 
 .profileImage {
@@ -222,7 +227,7 @@
   height: 140px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border: 3px solid var(--accent);
   box-shadow: 0 0 30px var(--accent-glow);
   animation: pulse 1.5s ease-in-out infinite;
@@ -284,8 +289,8 @@
   aspect-ratio: 1;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--bg-card);
-  box-shadow: 0 0 40px var(--accent-glow);
+  background: var(--bg-divider);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .video {
@@ -298,11 +303,11 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 30px var(--accent-glow);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .noVideoEmoji {
@@ -314,9 +319,10 @@
   position: relative;
   width: 100%;
   padding: 16px 18px;
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   border-left: 4px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .speechBubble::before {
@@ -325,7 +331,7 @@
   top: -10px;
   left: 28px;
   border: 5px solid transparent;
-  border-bottom-color: var(--bg-card);
+  border-bottom-color: var(--bg-secondary);
 }
 
 .dialogueText {
@@ -338,7 +344,7 @@
 .userEcho {
   width: 100%;
   padding: 10px 14px;
-  background: var(--bg-secondary);
+  background: var(--bg-divider);
   border-radius: var(--radius);
   display: flex;
   gap: 8px;
@@ -359,9 +365,9 @@
 
 .errorText {
   font-size: 14px;
-  color: #ef4444;
+  color: var(--danger);
   text-align: center;
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(240, 68, 82, 0.06);
   padding: 10px 16px;
   border-radius: var(--radius);
 }
@@ -383,7 +389,7 @@
 
 .paidLabel {
   font-size: 12px;
-  color: #f59e0b;
+  color: var(--warning);
   font-weight: 600;
 }
 
@@ -394,23 +400,24 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(49, 130, 246, 0.06);
   border-radius: var(--radius);
   font-size: 12px;
-  color: #f59e0b;
+  color: var(--accent);
 }
 
 .historyNoticeClose {
   font-size: 12px;
   color: var(--text-muted);
   padding: 2px 4px;
+  background: transparent;
 }
 
 /* ── History drawer ── */
 .historyOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: flex-end;
   z-index: 100;
@@ -448,7 +455,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border-radius: 50%;
   font-size: 12px;
   color: var(--text-muted);
@@ -471,15 +478,16 @@
   width: 100%;
   text-align: left;
   padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   gap: 4px;
   transition: background 0.15s;
+  background: transparent;
 }
 
 .historyItem:active {
-  background: var(--bg-card);
+  background: var(--bg-divider);
 }
 
 .historyItemMsg {
@@ -508,13 +516,19 @@
 .textarea {
   flex: 1;
   padding: 12px 14px;
-  background: var(--bg-input);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text-primary);
   font-size: 16px;
   resize: none;
   line-height: 1.4;
   max-height: 120px;
+  transition: border-color 0.2s;
+}
+
+.textarea:focus {
+  border-color: var(--accent);
 }
 
 .textarea::placeholder {
@@ -525,8 +539,8 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--bg-card);
-  color: var(--text-muted);
+  background: var(--bg-divider);
+  color: var(--text-disabled);
   font-size: 20px;
   display: flex;
   align-items: center;
@@ -545,7 +559,7 @@
 }
 
 .sendPaid {
-  background: #d97706;
+  background: var(--warning);
   color: #fff;
   font-size: 16px;
 }

@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  background: var(--bg-primary);
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -13,6 +14,7 @@
   justify-content: space-between;
   padding: 20px 16px 14px;
   gap: 12px;
+  background: var(--bg-secondary);
 }
 
 .titleArea {
@@ -31,14 +33,14 @@
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.5px;
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 .versionBadge {
   font-size: 10px;
   font-weight: 600;
   color: var(--text-muted);
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 2px 7px;
@@ -63,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: var(--bg-card);
+  background: var(--bg-divider);
   border-radius: 20px;
   padding: 6px 12px;
 }
@@ -131,6 +133,7 @@
   text-align: left;
   transition: transform 0.15s;
   aspect-ratio: 3 / 4;
+  border: 1px solid var(--border);
 }
 
 .characterCard:active {
@@ -141,7 +144,7 @@
   position: relative;
   flex: 1;
   min-height: 0;
-  background: var(--bg-secondary);
+  background: var(--bg-divider);
   overflow: hidden;
 }
 
@@ -157,7 +160,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
+  background: var(--bg-divider);
 }
 
 .fallbackEmoji {
@@ -172,7 +175,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   color: #fff;
   font-size: 10px;
   display: flex;
@@ -226,7 +229,7 @@
 
 .emptySlot:active {
   border-color: var(--accent);
-  background: rgba(255, 77, 109, 0.05);
+  background: rgba(49, 130, 246, 0.04);
 }
 
 .emptyPlus {
@@ -238,7 +241,7 @@
 /* ── Add slot button ── */
 .addSlotCard {
   aspect-ratio: 3 / 4;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 2px dashed var(--border);
   display: flex;

@@ -2,6 +2,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: var(--bg-primary);
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -10,6 +11,8 @@
   align-items: center;
   padding: 16px 20px;
   gap: 12px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
 }
 
 .backBtn {
@@ -18,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: transparent;
   border-radius: 50%;
   color: var(--text-primary);
   font-size: 18px;
@@ -29,6 +32,7 @@
   font-size: 18px;
   font-weight: 600;
   text-align: center;
+  color: var(--text-primary);
 }
 
 .spacer {
