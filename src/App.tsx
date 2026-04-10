@@ -4,10 +4,12 @@ import HomeScreen from "./components/HomeScreen";
 import CreateScreen from "./components/CreateScreen";
 import CharacterPage from "./components/CharacterPage";
 import TokenPage from "./components/TokenPage";
+import ExitModal from "./components/ExitModal";
 import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
+import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import "./index.css";
 
-export const APP_VERSION = "v0.0.2";
+export const APP_VERSION = "v0.0.3";
 const INITIAL_TOKENS = 100;
 const DEFAULTS_V2_KEY = "yokbaji_defaults_v2_seeded";
 
@@ -41,8 +43,30 @@ export default function App() {
   const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
   const [tokens, setTokens] = useState(INITIAL_TOKENS);
   const [totalSlots, setTotalSlots] = useState(() => getSlotCount());
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  // Initialize Toss SDK: user key + screen awake
+  useEffect(() => {
+    getTossUserKey().then((key) => {
+      console.log("[yokbaji] toss user key:", key);
+    });
+    setScreenAwake(true);
+    return () => { setScreenAwake(false); };
+  }, []);
 
   useEffect(() => { seedDefaultCharacters(); }, []);
+
+  // Listen for Toss WebView close (X button) — show exit confirmation
+  useEffect(() => {
+    if (!isTossWebView()) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const emitter = (window as any).__GRANITE_NATIVE_EMITTER as
+      | { on: (event: string, cb: () => void) => () => void }
+      | undefined;
+    if (emitter?.on) {
+      return emitter.on("closeView", () => setShowExitModal(true));
+    }
+  }, []);
 
   const goHome = useCallback(() => {
     setScreen("home");
@@ -74,42 +98,51 @@ export default function App() {
     setTotalSlots(next);
   }, [tokens, goToken]);
 
-  switch (screen) {
-    case "home":
-      return (
-        <HomeScreen
-          tokens={tokens}
-          totalSlots={totalSlots}
-          version={APP_VERSION}
-          onCreateNew={() => setScreen("create")}
-          onSelectCharacter={handleSelectCharacter}
-          onAddSlot={handleAddSlot}
-          onCharge={goToken}
-        />
-      );
-    case "create":
-      return (
-        <CreateScreen
-          tokens={tokens}
-          onBack={goHome}
-          onCreated={handleCreated}
-          onCharge={goToken}
-          onHome={goHome}
-        />
-      );
-    case "character":
-      return character ? (
-        <CharacterPage
-          character={character}
-          tokens={tokens}
-          onBack={goHome}
-          onHome={goHome}
-          onCharge={goToken}
-        />
-      ) : null;
-    case "token":
-      return (
-        <TokenPage onBack={() => setScreen(prevScreen)} />
-      );
-  }
+  const content = (() => {
+    switch (screen) {
+      case "home":
+        return (
+          <HomeScreen
+            tokens={tokens}
+            totalSlots={totalSlots}
+            version={APP_VERSION}
+            onCreateNew={() => setScreen("create")}
+            onSelectCharacter={handleSelectCharacter}
+            onAddSlot={handleAddSlot}
+            onCharge={goToken}
+          />
+        );
+      case "create":
+        return (
+          <CreateScreen
+            tokens={tokens}
+            onBack={goHome}
+            onCreated={handleCreated}
+            onCharge={goToken}
+            onHome={goHome}
+          />
+        );
+      case "character":
+        return character ? (
+          <CharacterPage
+            character={character}
+            tokens={tokens}
+            onBack={goHome}
+            onHome={goHome}
+            onCharge={goToken}
+          />
+        ) : null;
+      case "token":
+        return (
+          <TokenPage onBack={() => setScreen(prevScreen)} />
+        );
+    }
+  })();
+
+  return (
+    <>
+      {content}
+      <ExitModal open={showExitModal} onClose={() => setShowExitModal(false)} />
+    </>
+  );
 }
