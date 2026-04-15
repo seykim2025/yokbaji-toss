@@ -31,3 +31,7 @@ dist-ssr
 # vercel
 .vercel/
 .vercel
+
+# Apps-in-Toss build artifacts
+*.ait
+.granite/
