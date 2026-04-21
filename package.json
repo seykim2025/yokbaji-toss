@@ -8,7 +8,7 @@
   },
   "packageManager": "npm@10.8.2",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "granite dev",
     "build": "tsc -b && vite build",
     "build:ait": "ait build",
     "lint": "eslint .",
