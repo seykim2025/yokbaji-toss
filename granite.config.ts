@@ -8,7 +8,7 @@ export default defineConfig({
     icon: "https://yokbaji-toss.vercel.app/favicon.svg",
   },
   web: {
-    host: "localhost",
+    host: "10.1.1.28",
     port: 5173,
     commands: {
       dev: "vite --host",
