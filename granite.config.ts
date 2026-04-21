@@ -1,7 +1,7 @@
 import { defineConfig } from "@apps-in-toss/web-framework/config";
 
 export default defineConfig({
-  appName: "yokbaji-toss",
+  appName: "yokbaji",
   brand: {
     displayName: "욕바지",
     primaryColor: "#3182f6",
