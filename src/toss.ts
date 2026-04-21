@@ -22,10 +22,10 @@ export async function getTossUserKey(): Promise<string> {
 
   try {
     const sdk = await loadBridge();
-    // Prefer getAnonymousKey (SDK 2.4.5+), fall back to getUserKeyForGame
-    const fn = sdk.getAnonymousKey ?? sdk.getUserKeyForGame;
-    if (fn) {
-      const result = await fn();
+    if (sdk.getAnonymousKey) {
+      const result = await sdk.getAnonymousKey();
+      // SDK contract: { type: 'HASH', hash } on success, 'ERROR' string on
+      // unknown failure, undefined when the host Toss app is too old.
       if (result && typeof result === "object" && result.type === "HASH") {
         _cachedUserKey = result.hash;
         return result.hash;
@@ -76,9 +76,19 @@ export async function setScreenAwake(enabled: boolean): Promise<void> {
 }
 
 /** Trigger a haptic feedback vibration. */
-export async function haptic(
-  type: "tickWeak" | "tap" | "tickMedium" | "success" | "error" = "tap"
-): Promise<void> {
+export type HapticType =
+  | "tickWeak"
+  | "tap"
+  | "tickMedium"
+  | "softMedium"
+  | "basicWeak"
+  | "basicMedium"
+  | "success"
+  | "error"
+  | "wiggle"
+  | "confetti";
+
+export async function haptic(type: HapticType = "tap"): Promise<void> {
   try {
     const sdk = await loadBridge();
     await sdk.generateHapticFeedback({ type });
