@@ -16,13 +16,16 @@ export default defineConfig({
     },
   },
   outdir: "dist",
-  permissions: [],
+  permissions: [
+    { name: "photos", access: "read" },
+  ],
   webViewProps: {
-    type: "game",
+    type: "partner",
     bounces: false,
     pullToRefreshEnabled: false,
     overScrollMode: "never",
     allowsBackForwardNavigationGestures: false,
     mediaPlaybackRequiresUserAction: false,
+    allowsInlineMediaPlayback: true,
   },
 });

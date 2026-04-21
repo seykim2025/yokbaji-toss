@@ -12,8 +12,11 @@ import "./index.css";
 export const APP_VERSION = "v0.0.3";
 const INITIAL_TOKENS = 100;
 const DEFAULTS_V2_KEY = "yokbaji_defaults_v2_seeded";
+const SEED_ENABLED =
+  import.meta.env.DEV || import.meta.env.VITE_SEED_DEFAULTS === "true";
 
 async function seedDefaultCharacters(): Promise<void> {
+  if (!SEED_ENABLED) return;
   if (localStorage.getItem(DEFAULTS_V2_KEY)) return;
   try {
     // Clear previous defaults so fresh images are used
