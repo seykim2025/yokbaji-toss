@@ -5,8 +5,10 @@ import CreateScreen from "./components/CreateScreen";
 import CharacterPage from "./components/CharacterPage";
 import TokenPage from "./components/TokenPage";
 import ExitModal from "./components/ExitModal";
+import LoginScreen from "./components/LoginScreen";
 import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
+import { checkTossSession } from "./auth";
 import "./index.css";
 
 export const APP_VERSION = "v0.0.3";
@@ -41,12 +43,21 @@ async function seedDefaultCharacters(): Promise<void> {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<AppScreen>("home");
+  const [screen, setScreen] = useState<AppScreen | null>(null); // null = checking session
   const [character, setCharacter] = useState<Character | null>(null);
   const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
   const [tokens, setTokens] = useState(INITIAL_TOKENS);
   const [totalSlots, setTotalSlots] = useState(() => getSlotCount());
   const [showExitModal, setShowExitModal] = useState(false);
+
+  // On mount: check session, then route to login or home
+  useEffect(() => {
+    checkTossSession().then((result) => {
+      setScreen(result.ok ? "home" : "login");
+    }).catch(() => {
+      setScreen("login");
+    });
+  }, []);
 
   // Initialize Toss SDK: user key + screen awake
   useEffect(() => {
@@ -77,7 +88,7 @@ export default function App() {
   }, []);
 
   const goToken = useCallback(() => {
-    setPrevScreen(screen);
+    setPrevScreen(screen ?? "home");
     setScreen("token");
   }, [screen]);
 
@@ -101,8 +112,14 @@ export default function App() {
     setTotalSlots(next);
   }, [tokens, goToken]);
 
+  if (screen === null) {
+    return null; // splash while checking session
+  }
+
   const content = (() => {
     switch (screen) {
+      case "login":
+        return <LoginScreen onLoginSuccess={goHome} />;
       case "home":
         return (
           <HomeScreen

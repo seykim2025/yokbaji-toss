@@ -19,4 +19,4 @@ export interface ReactionResult {
   cached: boolean;
 }
 
-export type AppScreen = "home" | "create" | "character" | "token";
+export type AppScreen = "login" | "home" | "create" | "character" | "token";
