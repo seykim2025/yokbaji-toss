@@ -2,6 +2,24 @@ import type { Character, ReactionResult } from "./types";
 
 export const API_BASE = import.meta.env.VITE_API_URL || "https://yokbaji-engine.vercel.app";
 
+export async function exchangeAuthCode(
+  authorizationCode: string,
+  referrer: string
+): Promise<number | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/toss-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ authorizationCode, referrer }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data.userKey === "number" ? data.userKey : null;
+  } catch {
+    return null;
+  }
+}
+
 const LOCAL_CHAR_IDS_KEY = "yokbaji_character_ids";
 const LOCAL_LAST_USED_KEY = "yokbaji_last_used";
 const LOCAL_FREE_COUNT_KEY = "yokbaji_free_count";

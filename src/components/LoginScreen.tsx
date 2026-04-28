@@ -12,6 +12,7 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   DECRYPT_FAILED: "인증 처리 중 오류가 발생했어요.",
   SESSION_INVALID: "세션이 만료됐어요. 다시 로그인해 주세요.",
   INTERNAL_ERROR: "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
+  LOGIN_UNAVAILABLE: "토스 로그인을 사용할 수 없는 환경이에요.",
 };
 
 interface LoginScreenProps {
@@ -26,7 +27,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     setLoading(true);
     setErrorCode(null);
     try {
-      const { authorizationCode, referrer } = await tossAppLogin();
+      const loginResult = await tossAppLogin();
+      if (!loginResult) {
+        setErrorCode("LOGIN_UNAVAILABLE");
+        return;
+      }
+      const { authorizationCode, referrer } = loginResult;
       const result = await loginWithToss(authorizationCode, referrer);
       if (result.ok) {
         onLoginSuccess();

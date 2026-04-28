@@ -118,10 +118,20 @@ export async function haptic(type: HapticType = "tap"): Promise<void> {
   }
 }
 
-/** Initiate Toss OAuth login; returns authorizationCode + referrer from the SDK. */
-export async function tossAppLogin(): Promise<{ authorizationCode: string; referrer: string }> {
-  const sdk = await import("@apps-in-toss/native-modules");
-  return await sdk.appLogin();
+/**
+ * Initiate Toss OAuth login. Returns { authorizationCode, referrer } on success.
+ * Returns null when called outside the Toss WebView (dev browser, etc.).
+ */
+export async function tossAppLogin(): Promise<{ authorizationCode: string; referrer: string } | null> {
+  try {
+    const sdk = await loadBridge();
+    if (sdk.appLogin) {
+      return await sdk.appLogin();
+    }
+  } catch {
+    // Not in Toss WebView or login was cancelled
+  }
+  return null;
 }
 
 /** Share text via the native share sheet. */
