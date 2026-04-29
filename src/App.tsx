@@ -9,6 +9,7 @@ import LoginScreen from "./components/LoginScreen";
 import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
+import type { TossUser } from "./auth";
 import "./index.css";
 
 export const APP_VERSION = "v0.0.3";
@@ -44,6 +45,7 @@ async function seedDefaultCharacters(): Promise<void> {
 
 export default function App() {
   const [screen, setScreen] = useState<AppScreen | null>(null); // null = checking session
+  const [userName, setUserName] = useState<string | null>(null);
   const [character, setCharacter] = useState<Character | null>(null);
   const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
   const [tokens, setTokens] = useState(INITIAL_TOKENS);
@@ -53,6 +55,10 @@ export default function App() {
   // On mount: check session, then route to login or home
   useEffect(() => {
     checkTossSession().then((result) => {
+      if (result.ok) {
+        setUserName(result.user.name ?? null);
+        console.log("[yokbaji] toss userKey:", result.user.userKey);
+      }
       setScreen(result.ok ? "home" : "login");
     }).catch(() => {
       setScreen("login");
@@ -80,6 +86,11 @@ export default function App() {
     if (emitter?.on) {
       return emitter.on("closeView", () => setShowExitModal(true));
     }
+  }, []);
+
+  const handleLoginSuccess = useCallback((user: TossUser) => {
+    setUserName(user.name ?? null);
+    setScreen("home");
   }, []);
 
   const goHome = useCallback(() => {
@@ -119,13 +130,14 @@ export default function App() {
   const content = (() => {
     switch (screen) {
       case "login":
-        return <LoginScreen onLoginSuccess={goHome} />;
+        return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
       case "home":
         return (
           <HomeScreen
             tokens={tokens}
             totalSlots={totalSlots}
             version={APP_VERSION}
+            userName={userName}
             onCreateNew={() => setScreen("create")}
             onSelectCharacter={handleSelectCharacter}
             onAddSlot={handleAddSlot}

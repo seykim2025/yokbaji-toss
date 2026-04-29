@@ -7,6 +7,7 @@ interface Props {
   tokens: number;
   totalSlots: number;
   version: string;
+  userName?: string | null;
   onCreateNew: () => void;
   onSelectCharacter: (character: Character) => void;
   onAddSlot: () => void;
@@ -33,7 +34,7 @@ function getImageUrl(path: string): string {
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-export default function HomeScreen({ tokens, totalSlots, version, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
+export default function HomeScreen({ tokens, totalSlots, version, userName, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +72,9 @@ export default function HomeScreen({ tokens, totalSlots, version, onCreateNew, o
             <h1 className={styles.title}>욕바지</h1>
             <span className={styles.versionBadge}>{version}</span>
           </div>
-          <p className={styles.subtitle}>감정을 쏟아내 버려요</p>
+          <p className={styles.subtitle}>
+            {userName ? `${userName}님, 감정을 쏟아내 버려요` : "감정을 쏟아내 버려요"}
+          </p>
         </div>
         <div className={styles.tokenBar}>
           <div className={styles.tokenDisplay}>

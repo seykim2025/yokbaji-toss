@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { tossAppLogin } from "../toss";
 import { loginWithToss } from "../auth";
-import type { AuthErrorCode } from "../auth";
+import type { AuthErrorCode, TossUser } from "../auth";
 import styles from "./LoginScreen.module.css";
 
 const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
@@ -16,7 +16,7 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
 };
 
 interface LoginScreenProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (user: TossUser) => void;
 }
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
@@ -35,7 +35,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const { authorizationCode, referrer } = loginResult;
       const result = await loginWithToss(authorizationCode, referrer);
       if (result.ok) {
-        onLoginSuccess();
+        onLoginSuccess(result.user);
       } else {
         setErrorCode(result.errorCode);
       }

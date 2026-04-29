@@ -1,9 +1,5 @@
 const AUTH_BASE =
-  import.meta.env.VITE_AUTH_URL ||
-  import.meta.env.VITE_API_URL ||
-  "https://yokbaji-engine.vercel.app";
-
-const SESSION_KEY = "yokbaji_toss_user_key";
+  import.meta.env.VITE_AUTH_URL || "https://auth.oneclack.com";
 
 export type AuthErrorCode =
   | "INVALID_APP"
@@ -17,6 +13,7 @@ export type AuthErrorCode =
 
 export interface TossUser {
   userKey: string;
+  name?: string;
   [key: string]: unknown;
 }
 
@@ -32,27 +29,30 @@ export interface SessionInvalidResult {
 
 export type SessionResult = SessionCheckResult | SessionInvalidResult;
 
-export function getStoredUser(): TossUser | null {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as TossUser) : null;
-  } catch {
-    return null;
+// auth.oneclack.com response shape: { ok: boolean, error?: { code, message }, ...user }
+function parseAuthResponse(status: number, data: Record<string, unknown>): SessionResult {
+  if (status >= 200 && status < 300 && data.ok === true) {
+    const user: TossUser = {
+      userKey: String(data.userKey ?? ""),
+      ...(data.name ? { name: data.name as string } : {}),
+    };
+    return { ok: true, user };
   }
-}
-
-function storeUser(user: TossUser): void {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-}
-
-export function clearStoredUser(): void {
-  localStorage.removeItem(SESSION_KEY);
+  const errCode =
+    (data.error as { code?: string } | undefined)?.code as AuthErrorCode | undefined;
+  return { ok: false, errorCode: errCode ?? "INTERNAL_ERROR" };
 }
 
 export async function checkTossSession(): Promise<SessionResult> {
-  const stored = getStoredUser();
-  if (stored) return { ok: true, user: stored };
-  return { ok: false, errorCode: "SESSION_INVALID" };
+  try {
+    const res = await fetch(`${AUTH_BASE}/api/toss/me`, {
+      credentials: "include",
+    });
+    const data = await res.json().catch(() => ({}));
+    return parseAuthResponse(res.status, data);
+  } catch {
+    return { ok: false, errorCode: "SESSION_INVALID" };
+  }
 }
 
 export async function loginWithToss(
@@ -60,19 +60,14 @@ export async function loginWithToss(
   referrer: string
 ): Promise<SessionResult> {
   try {
-    const res = await fetch(`${AUTH_BASE}/api/auth/toss-login`, {
+    const res = await fetch(`${AUTH_BASE}/api/toss/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ authorizationCode, referrer }),
+      credentials: "include",
+      body: JSON.stringify({ appSlug: "yokbaji", authorizationCode, referrer }),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok && typeof data.userKey !== "undefined") {
-      const user: TossUser = { userKey: String(data.userKey), ...data };
-      storeUser(user);
-      return { ok: true, user };
-    }
-    const errorCode = (data.errorCode as AuthErrorCode) ?? "INTERNAL_ERROR";
-    return { ok: false, errorCode };
+    return parseAuthResponse(res.status, data);
   } catch {
     return { ok: false, errorCode: "INTERNAL_ERROR" };
   }
