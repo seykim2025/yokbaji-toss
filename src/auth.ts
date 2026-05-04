@@ -1,5 +1,8 @@
-const AUTH_BASE =
-  import.meta.env.VITE_AUTH_URL || "https://auth.oneclack.com";
+// AUTH_BASE is empty by default so /api/toss/* is relative — Vite proxy forwards to auth.oneclack.com.
+// Set VITE_AUTH_URL to an absolute URL to override (e.g. production deploy without proxy).
+const AUTH_BASE = import.meta.env.VITE_AUTH_URL ?? "";
+
+const USER_STORAGE_KEY = "yokbaji_session_user";
 
 export type AuthErrorCode =
   | "INVALID_APP"
@@ -45,11 +48,11 @@ function parseAuthResponse(status: number, data: Record<string, unknown>): Sessi
 
 export async function checkTossSession(): Promise<SessionResult> {
   try {
-    const res = await fetch(`${AUTH_BASE}/api/toss/me`, {
-      credentials: "include",
-    });
-    const data = await res.json().catch(() => ({}));
-    return parseAuthResponse(res.status, data);
+    const stored = localStorage.getItem(USER_STORAGE_KEY);
+    if (!stored) return { ok: false, errorCode: "SESSION_INVALID" };
+    const user = JSON.parse(stored) as TossUser;
+    if (!user?.userKey) return { ok: false, errorCode: "SESSION_INVALID" };
+    return { ok: true, user };
   } catch {
     return { ok: false, errorCode: "SESSION_INVALID" };
   }
@@ -63,12 +66,19 @@ export async function loginWithToss(
     const res = await fetch(`${AUTH_BASE}/api/toss/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ appSlug: "yokbaji", authorizationCode, referrer }),
     });
     const data = await res.json().catch(() => ({}));
-    return parseAuthResponse(res.status, data);
+    const result = parseAuthResponse(res.status, data);
+    if (result.ok) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result.user));
+    }
+    return result;
   } catch {
     return { ok: false, errorCode: "INTERNAL_ERROR" };
   }
+}
+
+export function clearTossSession(): void {
+  localStorage.removeItem(USER_STORAGE_KEY);
 }
