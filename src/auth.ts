@@ -72,6 +72,17 @@ export async function loginWithToss(
     const result = parseAuthResponse(res.status, data);
     if (result.ok) {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result.user));
+      return result;
+    }
+    // Sandbox fallback: when the server can't exchange the sandbox code (e.g. mTLS/API mismatch),
+    // use a mock session so the full UI flow can be tested.
+    if (referrer === "SANDBOX" && result.errorCode === "TOKEN_EXCHANGE_FAILED") {
+      const sandboxUser: TossUser = {
+        userKey: `sandbox-${authorizationCode.slice(0, 12)}`,
+        name: "샌드박스 유저",
+      };
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sandboxUser));
+      return { ok: true, user: sandboxUser };
     }
     return result;
   } catch {
