@@ -29,15 +29,11 @@ export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보�
 
     const unregisterLoad = await loadRewardedAd(
       REWARDED_AD_GROUP_ID,
-      (type) => {
-        if (type === "loaded") {
-          loaded = true;
-          setState("ready");
-          showAd();
-        } else if (type === "failedToLoad") {
-          setState("error");
-          setMsg("광고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
-        }
+      (_type) => {
+        // onEvent only fires with type: 'loaded'
+        loaded = true;
+        setState("ready");
+        showAd();
       },
       (err) => {
         console.error("[RewardedAd] load error:", err);
