@@ -16,21 +16,25 @@ import "./index.css";
 
 export const APP_VERSION = "v0.0.3";
 const INITIAL_TOKENS = 100;
-const DEFAULTS_V2_KEY = "yokbaji_defaults_v2_seeded";
-const SEED_ENABLED =
-  import.meta.env.DEV || import.meta.env.VITE_SEED_DEFAULTS === "true";
+const DEFAULTS_V3_KEY = "yokbaji_defaults_v3_seeded";
 
 async function seedDefaultCharacters(): Promise<void> {
-  if (!SEED_ENABLED) return;
-  if (localStorage.getItem(DEFAULTS_V2_KEY)) return;
+  if (localStorage.getItem(DEFAULTS_V3_KEY)) return;
   try {
-    // Clear previous defaults so fresh images are used
+    // Clear any stale previous-version seed markers and character IDs
     localStorage.removeItem("yokbaji_character_ids");
     localStorage.removeItem("yokbaji_defaults_seeded");
+    localStorage.removeItem("yokbaji_defaults_v2_seeded");
 
     const [blob1, blob2] = await Promise.all([
-      fetch("/girl.jpeg").then((r) => r.blob()),
-      fetch("/man.jpeg").then((r) => r.blob()),
+      fetch("/girl.jpeg").then((r) => {
+        if (!r.ok) throw new Error("girl.jpeg not found");
+        return r.blob();
+      }),
+      fetch("/man.jpeg").then((r) => {
+        if (!r.ok) throw new Error("man.jpeg not found");
+        return r.blob();
+      }),
     ]);
     const img1 = new File([blob1], "girl.jpeg", { type: "image/jpeg" });
     const img2 = new File([blob2], "man.jpeg", { type: "image/jpeg" });
@@ -39,9 +43,10 @@ async function seedDefaultCharacters(): Promise<void> {
       createCharacter(img1, "WEAK", "F", "온순이"),
       createCharacter(img2, "ANGRY", "M", "버럭이"),
     ]);
-    localStorage.setItem(DEFAULTS_V2_KEY, "1");
-  } catch {
-    // will retry next load
+    localStorage.setItem(DEFAULTS_V3_KEY, "1");
+  } catch (err) {
+    console.error("[yokbaji] default seed failed:", err);
+    // will retry on next load
   }
 }
 

@@ -232,6 +232,31 @@
   background: rgba(49, 130, 246, 0.04);
 }
 
+.paidSlot {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.04);
+  position: relative;
+}
+
+.paidSlot:active {
+  border-color: #d97706;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.paidBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 20px;
+  padding: 2px 6px;
+  letter-spacing: 0.02em;
+}
+
 .emptyPlus {
   font-size: 32px;
   color: var(--text-muted);

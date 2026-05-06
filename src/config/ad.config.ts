@@ -1,5 +1,5 @@
 // user-facing unit: 코인
-export const REWARDED_AD_COIN_AMOUNT = 3;
+export const REWARDED_AD_COIN_AMOUNT = 5;
 export const DAILY_REWARDED_AD_LIMIT = 3;
 export const DAILY_REWARDED_COIN_LIMIT = 9;
 

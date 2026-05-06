@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, deleteCharacterLocally, API_BASE, getLastUsed } from "../api";
+import { listCharacters, deleteCharacterLocally, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
@@ -135,15 +135,20 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
           ))}
 
           {/* Empty slot cards */}
-          {Array.from({ length: emptySlotCount }).map((_, i) => (
-            <button
-              key={`empty-${i}`}
-              className={styles.emptySlot}
-              onClick={onCreateNew}
-            >
-              <span className={styles.emptyPlus}>+</span>
-            </button>
-          ))}
+          {Array.from({ length: emptySlotCount }).map((_, i) => {
+            const slotIndex = characters.length + i;
+            const isPaid = slotIndex >= DEFAULT_SLOT_COUNT;
+            return (
+              <button
+                key={`empty-${i}`}
+                className={`${styles.emptySlot} ${isPaid ? styles.paidSlot : ""}`}
+                onClick={onCreateNew}
+              >
+                <span className={styles.emptyPlus}>+</span>
+                {isPaid && <span className={styles.paidBadge}>코인</span>}
+              </button>
+            );
+          })}
 
           {/* Add slot button (always last) */}
           <button className={styles.addSlotCard} onClick={onAddSlot}>
