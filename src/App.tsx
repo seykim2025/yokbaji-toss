@@ -6,9 +6,11 @@ import CharacterPage from "./components/CharacterPage";
 import TokenPage from "./components/TokenPage";
 import ExitModal from "./components/ExitModal";
 import LoginScreen from "./components/LoginScreen";
+import CoinShortageModal from "./components/CoinShortageModal";
 import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
+import { initAds } from "./lib/tossAds";
 import type { TossUser } from "./auth";
 import "./index.css";
 
@@ -51,6 +53,7 @@ export default function App() {
   const [tokens, setTokens] = useState(INITIAL_TOKENS);
   const [totalSlots, setTotalSlots] = useState(() => getSlotCount());
   const [showExitModal, setShowExitModal] = useState(false);
+  const [showCoinShortage, setShowCoinShortage] = useState(false);
 
   // On mount: check session, then route to login or home
   useEffect(() => {
@@ -65,12 +68,13 @@ export default function App() {
     });
   }, []);
 
-  // Initialize Toss SDK: user key + screen awake
+  // Initialize Toss SDK: user key + screen awake + ads
   useEffect(() => {
     getTossUserKey().then((key) => {
       console.log("[yokbaji] toss user key:", key);
     });
     setScreenAwake(true);
+    initAds();
     return () => { setScreenAwake(false); };
   }, []);
 
@@ -115,13 +119,17 @@ export default function App() {
 
   const handleAddSlot = useCallback(() => {
     if (tokens < SLOT_ADD_COST) {
-      goToken();
+      setShowCoinShortage(true);
       return;
     }
     setTokens((t) => t - SLOT_ADD_COST);
     const next = incrementSlotCount();
     setTotalSlots(next);
-  }, [tokens, goToken]);
+  }, [tokens]);
+
+  const handleCoinsAdded = useCallback((amount: number) => {
+    setTokens((t) => t + amount);
+  }, []);
 
   if (screen === null) {
     return null; // splash while checking session
@@ -166,7 +174,10 @@ export default function App() {
         ) : null;
       case "token":
         return (
-          <TokenPage onBack={() => setScreen(prevScreen)} />
+          <TokenPage
+            onBack={() => setScreen(prevScreen)}
+            onCoinsAdded={handleCoinsAdded}
+          />
         );
     }
   })();
@@ -175,6 +186,11 @@ export default function App() {
     <>
       {content}
       <ExitModal open={showExitModal} onClose={() => setShowExitModal(false)} />
+      <CoinShortageModal
+        open={showCoinShortage}
+        onClose={() => setShowCoinShortage(false)}
+        onCoinsAdded={handleCoinsAdded}
+      />
     </>
   );
 }

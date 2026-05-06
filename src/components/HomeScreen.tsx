@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
 import { listCharacters, deleteCharacterLocally, API_BASE, getLastUsed } from "../api";
+import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   totalSlots: number;
   version: string;
   userName?: string | null;
+  isCreating?: boolean;
   onCreateNew: () => void;
   onSelectCharacter: (character: Character) => void;
   onAddSlot: () => void;
@@ -34,7 +36,7 @@ function getImageUrl(path: string): string {
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-export default function HomeScreen({ tokens, totalSlots, version, userName, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
+export default function HomeScreen({ tokens, totalSlots, version, userName, isCreating, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -151,6 +153,9 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, onCr
           </button>
         </div>
       )}
+
+      {/* Banner ad — hidden while creating/generating to avoid overlap */}
+      <MainFooterBannerAd hidden={isCreating} />
     </div>
   );
 }
