@@ -7,14 +7,14 @@ import TokenPage from "./components/TokenPage";
 import ExitModal from "./components/ExitModal";
 import LoginScreen from "./components/LoginScreen";
 import CoinShortageModal from "./components/CoinShortageModal";
-import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
+import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST, markAsDefault } from "./api";
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
 import { initAds } from "./lib/tossAds";
 import type { TossUser } from "./auth";
 import "./index.css";
 
-export const APP_VERSION = "v0.0.3";
+export const APP_VERSION = "v0.0.4";
 const INITIAL_TOKENS = 100;
 const DEFAULTS_V3_KEY = "yokbaji_defaults_v3_seeded";
 
@@ -39,10 +39,12 @@ async function seedDefaultCharacters(): Promise<void> {
     const img1 = new File([blob1], "girl.jpeg", { type: "image/jpeg" });
     const img2 = new File([blob2], "man.jpeg", { type: "image/jpeg" });
 
-    await Promise.all([
+    const [c1, c2] = await Promise.all([
       createCharacter(img1, "WEAK", "F", "온순이"),
       createCharacter(img2, "ANGRY", "M", "버럭이"),
     ]);
+    markAsDefault(c1.id);
+    markAsDefault(c2.id);
     localStorage.setItem(DEFAULTS_V3_KEY, "1");
   } catch (err) {
     console.error("[yokbaji] default seed failed:", err);

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, deleteCharacterLocally, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT } from "../api";
+import { listCharacters, deleteCharacterLocally, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT, isDefaultCharacter } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
@@ -39,6 +39,7 @@ function getImageUrl(path: string): string {
 export default function HomeScreen({ tokens, totalSlots, version, userName, isCreating, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const load = useCallback(() => {
     listCharacters()
@@ -57,10 +58,16 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
 
   useEffect(() => { load(); }, [load]);
 
-  function handleDelete(e: React.MouseEvent, id: string) {
+  function handleDeleteRequest(e: React.MouseEvent, id: string, name: string) {
     e.stopPropagation();
-    deleteCharacterLocally(id);
-    setCharacters((prev) => prev.filter((c) => c.id !== id));
+    setDeleteTarget({ id, name });
+  }
+
+  function handleDeleteConfirm() {
+    if (!deleteTarget) return;
+    deleteCharacterLocally(deleteTarget.id);
+    setCharacters((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+    setDeleteTarget(null);
   }
 
   const emptySlotCount = Math.max(0, totalSlots - characters.length);
@@ -114,13 +121,15 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
                     <span className={styles.fallbackEmoji}>👤</span>
                   </div>
                 )}
-                <button
-                  className={styles.deleteBtn}
-                  onClick={(e) => handleDelete(e, c.id)}
-                  aria-label="Delete"
-                >
-                  ✕
-                </button>
+                {!isDefaultCharacter(c.id) && (
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={(e) => handleDeleteRequest(e, c.id, (c.name && c.name !== "Unnamed") ? c.name : "이름 없음")}
+                    aria-label="삭제"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
               <div className={styles.cardFooter}>
                 <span className={styles.cardName}>{(c.name && c.name !== "Unnamed") ? c.name : "이름 없음"}</span>
@@ -161,6 +170,26 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
 
       {/* Banner ad — hidden while creating/generating to avoid overlap */}
       <MainFooterBannerAd hidden={isCreating} />
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteTarget(null)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>정말 삭제할까요?</h3>
+            <p className={styles.modalBody}>
+              삭제하면 이 캐릭터와 대화 기록을 다시 불러올 수 없어요.
+            </p>
+            <div className={styles.modalActions}>
+              <button className={styles.modalCancel} onClick={() => setDeleteTarget(null)}>
+                취소
+              </button>
+              <button className={styles.modalConfirm} onClick={handleDeleteConfirm}>
+                삭제하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -342,7 +342,10 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
                   loop
                   muted
                   playsInline
+                  disablePictureInPicture
+                  onContextMenu={(e) => e.preventDefault()}
                 />
+                <div className={styles.videoOverlay} />
               </div>
             ) : (
               <div className={styles.noVideo}>

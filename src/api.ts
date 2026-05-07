@@ -25,9 +25,31 @@ const LOCAL_LAST_USED_KEY = "yokbaji_last_used";
 const LOCAL_FREE_COUNT_KEY = "yokbaji_free_count";
 const LOCAL_SLOT_COUNT_KEY = "yokbaji_slot_count";
 const LOCAL_CONVERSATIONS_KEY = "yokbaji_conversations";
+const LOCAL_DEFAULT_IDS_KEY = "yokbaji_default_ids";
 export const FREE_LIMIT = 5;
 export const DEFAULT_SLOT_COUNT = 5;
 export const SLOT_ADD_COST = 10;
+
+// ── Default character protection ─────────────────────────────────────────────
+
+export function markAsDefault(id: string): void {
+  try {
+    const raw = localStorage.getItem(LOCAL_DEFAULT_IDS_KEY);
+    const ids: string[] = raw ? JSON.parse(raw) : [];
+    if (!ids.includes(id)) {
+      ids.push(id);
+      localStorage.setItem(LOCAL_DEFAULT_IDS_KEY, JSON.stringify(ids));
+    }
+  } catch { /* ignore */ }
+}
+
+export function isDefaultCharacter(id: string): boolean {
+  try {
+    const raw = localStorage.getItem(LOCAL_DEFAULT_IDS_KEY);
+    if (!raw) return false;
+    return (JSON.parse(raw) as string[]).includes(id);
+  } catch { return false; }
+}
 
 // ── Slot management ──────────────────────────────────────────────────────────
 

@@ -297,8 +297,79 @@
   color: var(--text-muted);
 }
 
+/* ── Coin icon gold color ── */
+.tokenIcon {
+  font-size: 14px;
+  filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
+}
+
+/* ── Delete confirmation modal ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 28px 20px calc(28px + var(--safe-bottom));
+  animation: slideUp 0.25s ease-out;
+}
+
+.modalTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.modalBody {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 8px;
+}
+
+.modalCancel {
+  flex: 1;
+  padding: 14px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: var(--radius);
+}
+
+.modalConfirm {
+  flex: 1;
+  padding: 14px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(60px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
