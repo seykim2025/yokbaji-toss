@@ -6,6 +6,7 @@ import {
   saveConversation, getConversations,
 } from "../api";
 import type { ConversationRecord } from "../api";
+import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./CharacterPage.module.css";
 
 interface Props {
@@ -414,6 +415,9 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
           )}
         </div>
       )}
+
+      {/* Bottom banner ad */}
+      <MainFooterBannerAd hidden={isLoading} />
 
       {/* History drawer */}
       {showHistory && (
