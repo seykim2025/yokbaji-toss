@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/toss/:path*", "destination": "https://auth.oneclack.com/api/toss/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
