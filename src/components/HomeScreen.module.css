@@ -168,26 +168,23 @@
   opacity: 0.5;
 }
 
-.deleteBtn {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.15s;
+/* ── Paid character card ── */
+.characterCardPaid {
+  border-color: #f59e0b;
+  background: linear-gradient(160deg, var(--bg-card) 0%, rgba(245, 158, 11, 0.06) 100%);
 }
 
-.characterCard:hover .deleteBtn,
-.characterCard:active .deleteBtn {
-  opacity: 1;
+.charPaidBadge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  padding: 2px 6px;
+  z-index: 1;
+  pointer-events: none;
+  filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
 }
 
 .cardFooter {
@@ -233,28 +230,23 @@
 }
 
 .paidSlot {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.04);
+  border: 2px solid #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(245, 158, 11, 0.04));
   position: relative;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .paidSlot:active {
   border-color: #d97706;
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(245, 158, 11, 0.2);
 }
 
 .paidBadge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
-  color: #b45309;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  border-radius: 20px;
-  padding: 2px 6px;
-  letter-spacing: 0.02em;
+  color: #f59e0b;
+  filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
 }
 
 .emptyPlus {
@@ -295,72 +287,13 @@
 .addSlotCost {
   font-size: 11px;
   color: var(--text-muted);
+  filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
 }
 
 /* ── Coin icon gold color ── */
 .tokenIcon {
   font-size: 14px;
   filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
-}
-
-/* ── Delete confirmation modal ── */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 200;
-  animation: fadeIn 0.15s ease-out;
-}
-
-.modal {
-  width: 100%;
-  max-width: 480px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 28px 20px calc(28px + var(--safe-bottom));
-  animation: slideUp 0.25s ease-out;
-}
-
-.modalTitle {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.modalBody {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin-bottom: 22px;
-}
-
-.modalActions {
-  display: flex;
-  gap: 8px;
-}
-
-.modalCancel {
-  flex: 1;
-  padding: 14px;
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  font-size: 15px;
-  font-weight: 500;
-  border-radius: var(--radius);
-}
-
-.modalConfirm {
-  flex: 1;
-  padding: 14px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: var(--radius);
 }
 
 @keyframes fadeIn {

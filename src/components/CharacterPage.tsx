@@ -3,9 +3,11 @@ import type { Character, ReactionResult } from "../types";
 import {
   generateReaction, API_BASE, setLastUsed,
   getFreeCount, incrementFreeCount, isFreeExhausted, FREE_LIMIT,
-  saveConversation, getConversations,
+  saveConversation, getConversations, deleteConversations,
+  deleteCharacterLocally, isDefaultCharacter,
 } from "../api";
 import type { ConversationRecord } from "../api";
+import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./CharacterPage.module.css";
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
   onBack: () => void;
   onHome: () => void;
   onCharge: () => void;
+  onDeleted?: () => void;
 }
 
 type PageState = "idle" | "loading" | "done" | "error";
@@ -110,7 +113,7 @@ function formatTimestamp(iso: string): string {
   return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
 }
 
-export default function CharacterPage({ character, tokens, onBack, onHome, onCharge }: Props) {
+export default function CharacterPage({ character, tokens, onBack, onHome, onCharge, onDeleted }: Props) {
   const [message, setMessage] = useState("");
   const [pageState, setPageState] = useState<PageState>("idle");
   const [reaction, setReaction] = useState<ReactionResult | null>(null);
@@ -131,6 +134,8 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
 
   // Engine debug panel
   const [showDebug, setShowDebug] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const canDelete = !isDefaultCharacter(character.id);
 
   const isLoading = pageState === "loading";
   const personalityColor = PERSONALITY_COLOR[character.personality_type] || "#6b7280";
@@ -230,6 +235,15 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
             <span className={styles.tokenCount}>{tokens.toLocaleString()}</span>
           </div>
           <button className={styles.chargeBtn} onClick={onCharge}>충전</button>
+          {canDelete && (
+            <button
+              className={styles.deleteCharBtn}
+              onClick={() => setShowDeleteModal(true)}
+              aria-label="캐릭터 삭제"
+            >
+              🗑
+            </button>
+          )}
           <button className={styles.homeBtn} onClick={onHome}>🏠</button>
         </div>
       </header>
@@ -336,6 +350,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
             {reaction.video_url ? (
               <div className={styles.videoWrap}>
                 <video
+                  key={reaction.video_url}
                   className={styles.video}
                   src={reaction.video_url}
                   autoPlay
@@ -412,6 +427,44 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
               ↑
             </button>
           )}
+        </div>
+      )}
+
+      {/* Bottom banner ad */}
+      <MainFooterBannerAd hidden={isLoading} />
+
+      {/* Delete character modal */}
+      {showDeleteModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <div
+            style={{ background: "#fff", borderRadius: 16, padding: "28px 24px 20px", width: "min(300px, 88vw)", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#191f28", marginBottom: 8 }}>캐릭터를 삭제하시겠습니까?</p>
+            <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24, lineHeight: 1.5 }}>삭제하면 이 캐릭터의 대화 기록도 모두 삭제됩니다.</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: "#f2f3f4", color: "#4e5968", fontSize: 15, fontWeight: 600, border: "none", cursor: "pointer" }}
+                onClick={() => setShowDeleteModal(false)}
+              >
+                취소
+              </button>
+              <button
+                style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: "#F04438", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: "pointer" }}
+                onClick={() => {
+                  deleteCharacterLocally(character.id);
+                  deleteConversations(character.id);
+                  setShowDeleteModal(false);
+                  (onDeleted ?? onHome)();
+                }}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -88,6 +88,23 @@
   border-radius: 20px;
 }
 
+.deleteCharBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(240, 68, 56, 0.1);
+  border-radius: 50%;
+  font-size: 14px;
+  color: var(--danger);
+  transition: background 0.15s;
+}
+
+.deleteCharBtn:active {
+  background: rgba(240, 68, 56, 0.2);
+}
+
 .homeBtn {
   width: 32px;
   height: 32px;
@@ -403,6 +420,7 @@
   font-size: 12px;
   color: var(--warning);
   font-weight: 600;
+  filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
 }
 
 /* ── History notice (viewing past conversation) ── */
@@ -574,6 +592,7 @@
   background: var(--warning);
   color: #fff;
   font-size: 16px;
+  filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
 }
 
 .sendPaid:active {

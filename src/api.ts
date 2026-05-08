@@ -112,6 +112,14 @@ export function getConversations(characterId: string): ConversationRecord[] {
   } catch { return []; }
 }
 
+export function deleteConversations(characterId: string): void {
+  try {
+    const raw = localStorage.getItem(LOCAL_CONVERSATIONS_KEY);
+    const all: ConversationRecord[] = raw ? JSON.parse(raw) : [];
+    localStorage.setItem(LOCAL_CONVERSATIONS_KEY, JSON.stringify(all.filter((r) => r.characterId !== characterId)));
+  } catch { /* ignore */ }
+}
+
 export function getLastUsed(): Record<string, string> {
   try {
     const raw = localStorage.getItem(LOCAL_LAST_USED_KEY);

@@ -170,6 +170,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           ref={fileRef}
           type="file"
           accept="image/*"
+          capture="user"
           onChange={handleImageChange}
           disabled={loading}
           style={{ display: "none" }}

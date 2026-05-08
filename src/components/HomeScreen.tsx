@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, deleteCharacterLocally, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT, isDefaultCharacter } from "../api";
+import { listCharacters, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
@@ -36,10 +36,18 @@ function getImageUrl(path: string): string {
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
+function getPaidCharacterIds(characters: Character[]): Set<string> {
+  const byCreation = [...characters].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+  const paidIds = new Set<string>();
+  byCreation.slice(DEFAULT_SLOT_COUNT).forEach((c) => paidIds.add(c.id));
+  return paidIds;
+}
+
 export default function HomeScreen({ tokens, totalSlots, version, userName, isCreating, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const load = useCallback(() => {
     listCharacters()
@@ -58,19 +66,8 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
 
   useEffect(() => { load(); }, [load]);
 
-  function handleDeleteRequest(e: React.MouseEvent, id: string, name: string) {
-    e.stopPropagation();
-    setDeleteTarget({ id, name });
-  }
-
-  function handleDeleteConfirm() {
-    if (!deleteTarget) return;
-    deleteCharacterLocally(deleteTarget.id);
-    setCharacters((prev) => prev.filter((c) => c.id !== deleteTarget.id));
-    setDeleteTarget(null);
-  }
-
   const emptySlotCount = Math.max(0, totalSlots - characters.length);
+  const paidCharIds = getPaidCharacterIds(characters);
 
   return (
     <div className={styles.container}>
@@ -102,46 +99,41 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
       ) : (
         <div className={styles.grid}>
           {/* Character cards */}
-          {characters.map((c) => (
-            <button
-              key={c.id}
-              className={styles.characterCard}
-              onClick={() => onSelectCharacter(c)}
-            >
-              <div className={styles.cardImageWrap}>
-                {c.image_path ? (
-                  <img
-                    src={getImageUrl(c.image_path)}
-                    alt={c.name}
-                    className={styles.cardImage}
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                ) : (
-                  <div className={styles.cardImageFallback}>
-                    <span className={styles.fallbackEmoji}>👤</span>
-                  </div>
-                )}
-                {!isDefaultCharacter(c.id) && (
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={(e) => handleDeleteRequest(e, c.id, (c.name && c.name !== "Unnamed") ? c.name : "이름 없음")}
-                    aria-label="삭제"
+          {characters.map((c) => {
+            const isPaid = paidCharIds.has(c.id);
+            return (
+              <button
+                key={c.id}
+                className={`${styles.characterCard} ${isPaid ? styles.characterCardPaid : ""}`}
+                onClick={() => onSelectCharacter(c)}
+              >
+                <div className={styles.cardImageWrap}>
+                  {isPaid && <span className={styles.charPaidBadge}>🪙</span>}
+                  {c.image_path ? (
+                    <img
+                      src={getImageUrl(c.image_path)}
+                      alt={c.name}
+                      className={styles.cardImage}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  ) : (
+                    <div className={styles.cardImageFallback}>
+                      <span className={styles.fallbackEmoji}>👤</span>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.cardFooter}>
+                  <span className={styles.cardName}>{(c.name && c.name !== "Unnamed") ? c.name : "이름 없음"}</span>
+                  <span
+                    className={styles.personalityBadge}
+                    style={{ background: PERSONALITY_COLOR[c.personality_type] + "22", color: PERSONALITY_COLOR[c.personality_type] }}
                   >
-                    ✕
-                  </button>
-                )}
-              </div>
-              <div className={styles.cardFooter}>
-                <span className={styles.cardName}>{(c.name && c.name !== "Unnamed") ? c.name : "이름 없음"}</span>
-                <span
-                  className={styles.personalityBadge}
-                  style={{ background: PERSONALITY_COLOR[c.personality_type] + "22", color: PERSONALITY_COLOR[c.personality_type] }}
-                >
-                  {PERSONALITY_LABEL[c.personality_type] || c.personality_type}
-                </span>
-              </div>
-            </button>
-          ))}
+                    {PERSONALITY_LABEL[c.personality_type] || c.personality_type}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
 
           {/* Empty slot cards */}
           {Array.from({ length: emptySlotCount }).map((_, i) => {
@@ -171,25 +163,6 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
       {/* Banner ad — hidden while creating/generating to avoid overlap */}
       <MainFooterBannerAd hidden={isCreating} />
 
-      {/* Delete confirmation modal */}
-      {deleteTarget && (
-        <div className={styles.modalOverlay} onClick={() => setDeleteTarget(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>정말 삭제할까요?</h3>
-            <p className={styles.modalBody}>
-              삭제하면 이 캐릭터와 대화 기록을 다시 불러올 수 없어요.
-            </p>
-            <div className={styles.modalActions}>
-              <button className={styles.modalCancel} onClick={() => setDeleteTarget(null)}>
-                취소
-              </button>
-              <button className={styles.modalConfirm} onClick={handleDeleteConfirm}>
-                삭제하기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
