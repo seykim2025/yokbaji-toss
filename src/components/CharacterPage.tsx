@@ -136,6 +136,14 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
   const [showDebug, setShowDebug] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const canDelete = !isDefaultCharacter(character.id);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Imperatively call play() because autoPlay attribute is unreliable in iOS WebView
+  useEffect(() => {
+    if (reaction?.video_url && videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, [reaction?.video_url]);
 
   const isLoading = pageState === "loading";
   const personalityColor = PERSONALITY_COLOR[character.personality_type] || "#6b7280";
@@ -351,6 +359,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
               <div className={styles.videoWrap}>
                 <video
                   key={reaction.video_url}
+                  ref={videoRef}
                   className={styles.video}
                   src={reaction.video_url}
                   autoPlay
