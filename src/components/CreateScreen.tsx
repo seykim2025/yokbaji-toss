@@ -47,6 +47,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
   const [gender, setGender] = useState<Gender | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [faceError, setFaceError] = useState(false);
 
   async function handleTossPhotoPickOrFallback() {
     if (isTossWebView()) {
@@ -87,10 +88,23 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
     setPreview(URL.createObjectURL(file));
   }
 
+  function isFaceDetectionError(msg: string): boolean {
+    const lower = msg.toLowerCase();
+    return (
+      lower.includes("face") ||
+      lower.includes("얼굴") ||
+      lower.includes("no_face") ||
+      lower.includes("no face") ||
+      lower.includes("face_not") ||
+      lower.includes("detection")
+    );
+  }
+
   async function handleSubmit() {
     if (!image || !personality || !gender || loading) return;
     setLoading(true);
     setError(null);
+    setFaceError(false);
     try {
       let uploadFile = image;
       // If image is a blob: URL (from fetchAlbumPhotos with base64:false), re-fetch to File
@@ -102,9 +116,15 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
       const character = await createCharacter(uploadFile, personality, gender, name);
       onCreated(character);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "캐릭터 생성 실패";
-      console.error("[CreateScreen] createCharacter error:", msg, err);
-      setError(msg);
+      const rawMsg = err instanceof Error ? err.message : "캐릭터 생성 실패";
+      console.error("[CreateScreen] createCharacter error:", rawMsg, err);
+      if (isFaceDetectionError(rawMsg)) {
+        setFaceError(true);
+        setError("얼굴을 인식하지 못했어요. 얼굴이 정면을 향하고 잘 보이는 사진으로 다시 시도해주세요.");
+      } else {
+        setFaceError(false);
+        setError(rawMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -223,7 +243,19 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           </div>
         </div>
 
-        {error && <p className={styles.error}>{error}</p>}
+        {error && (
+          <div>
+            <p className={styles.error}>{error}</p>
+            {faceError && (
+              <button
+                className={styles.retryPhotoBtn}
+                onClick={() => { setPreview(null); setImage(null); setError(null); setFaceError(false); }}
+              >
+                📷 사진 다시 선택하기
+              </button>
+            )}
+          </div>
+        )}
 
         <button
           className={`${styles.submitBtn} ${canSubmit ? styles.submitActive : ""}`}

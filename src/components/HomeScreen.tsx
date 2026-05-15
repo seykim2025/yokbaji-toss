@@ -4,6 +4,22 @@ import { listCharacters, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT } from "../ap
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
+function SkeletonGrid() {
+  return (
+    <div className={styles.skeletonGrid}>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className={styles.skeletonCard}>
+          <div className={styles.skeletonImageArea} />
+          <div className={styles.skeletonFooter}>
+            <div className={styles.skeletonLine} />
+            <div className={styles.skeletonLineShort} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface Props {
   tokens: number;
   totalSlots: number;
@@ -48,8 +64,12 @@ function getPaidCharacterIds(characters: Character[]): Set<string> {
 export default function HomeScreen({ tokens, totalSlots, version, userName, isCreating, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
+  const [slowLoad, setSlowLoad] = useState(false);
 
   const load = useCallback(() => {
+    setLoading(true);
+    setSlowLoad(false);
+    const slowTimer = setTimeout(() => setSlowLoad(true), 3000);
     listCharacters()
       .then((list) => {
         const lastUsed = getLastUsed();
@@ -61,7 +81,11 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
         setCharacters(sorted);
       })
       .catch(() => setCharacters([]))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        clearTimeout(slowTimer);
+        setLoading(false);
+        setSlowLoad(false);
+      });
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -93,9 +117,14 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
 
       {/* Character Grid */}
       {loading ? (
-        <div className={styles.loading}>
-          <div className={styles.spinner} />
-        </div>
+        <>
+          <SkeletonGrid />
+          {slowLoad && (
+            <div className={styles.loading} style={{ flex: "none", paddingBottom: 16 }}>
+              <p className={styles.loadingText}>조금 오래 걸리고 있어요. 잠시만 기다려주세요 🙏</p>
+            </div>
+          )}
+        </>
       ) : (
         <div className={styles.grid}>
           {/* Character cards */}

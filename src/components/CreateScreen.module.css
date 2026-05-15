@@ -226,9 +226,32 @@
 }
 
 .error {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--danger);
   text-align: center;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  line-height: 1.5;
+}
+
+.retryPhotoBtn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.retryPhotoBtn:active {
+  background: var(--bg-divider);
 }
 
 .submitBtn {
