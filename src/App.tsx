@@ -14,7 +14,7 @@ import { initAds } from "./lib/tossAds";
 import type { TossUser } from "./auth";
 import "./index.css";
 
-export const APP_VERSION = "v0.0.4";
+export const APP_VERSION = "v0.0.6";
 const INITIAL_TOKENS = 100;
 const DEFAULTS_V3_KEY = "yokbaji_defaults_v3_seeded";
 
