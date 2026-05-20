@@ -146,86 +146,88 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
         </div>
       </header>
 
-      {/* Character Grid */}
-      {loading ? (
-        <>
-          <SkeletonGrid />
-          {slowLoad && (
-            <div className={styles.loading} style={{ flex: "none", paddingBottom: 16 }}>
-              <p className={styles.loadingText}>조금 오래 걸리고 있어요. 잠시만 기다려주세요 🙏</p>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className={styles.grid}>
-          {/* Character cards */}
-          {characters.map((c) => {
-            const isPaid = paidCharIds.has(c.id);
-            return (
-              <button
-                key={c.id}
-                className={`${styles.characterCard} ${isPaid ? styles.characterCardPaid : ""}`}
-                onClick={() => onSelectCharacter(c)}
-              >
-                <div className={styles.cardImageWrap}>
-                  {isPaid && <span className={styles.charPaidBadge}>🪙</span>}
-                  {c.image_path ? (
-                    <img
-                      src={getImageUrl(c.image_path)}
-                      alt={c.name}
-                      className={styles.cardImage}
-                      loading="lazy"
-                      onLoad={(e) => {
-                        const img = e.target as HTMLImageElement;
-                        console.log("[yokbaji] thumbnail loaded:", img.src.split("/").pop());
-                      }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                  ) : (
-                    <div className={styles.cardImageFallback}>
-                      <span className={styles.fallbackEmoji}>👤</span>
-                    </div>
-                  )}
-                </div>
-                <div className={styles.cardFooter}>
-                  <span className={styles.cardName}>{(c.name && c.name !== "Unnamed") ? c.name : "이름 없음"}</span>
-                  <span
-                    className={styles.personalityBadge}
-                    style={{ background: PERSONALITY_COLOR[c.personality_type] + "22", color: PERSONALITY_COLOR[c.personality_type] }}
-                  >
-                    {PERSONALITY_LABEL[c.personality_type] || c.personality_type}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
+      {/* Scrollable character grid area */}
+      <div className={styles.scrollContent}>
+        {loading ? (
+          <>
+            <SkeletonGrid />
+            {slowLoad && (
+              <div className={styles.loading} style={{ flex: "none", paddingBottom: 16 }}>
+                <p className={styles.loadingText}>조금 오래 걸리고 있어요. 잠시만 기다려주세요 🙏</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className={styles.grid}>
+            {/* Character cards */}
+            {characters.map((c) => {
+              const isPaid = paidCharIds.has(c.id);
+              return (
+                <button
+                  key={c.id}
+                  className={`${styles.characterCard} ${isPaid ? styles.characterCardPaid : ""}`}
+                  onClick={() => onSelectCharacter(c)}
+                >
+                  <div className={styles.cardImageWrap}>
+                    {isPaid && <span className={styles.charPaidBadge}>🪙</span>}
+                    {c.image_path ? (
+                      <img
+                        src={getImageUrl(c.image_path)}
+                        alt={c.name}
+                        className={styles.cardImage}
+                        loading="lazy"
+                        onLoad={(e) => {
+                          const img = e.target as HTMLImageElement;
+                          console.log("[yokbaji] thumbnail loaded:", img.src.split("/").pop());
+                        }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <div className={styles.cardImageFallback}>
+                        <span className={styles.fallbackEmoji}>👤</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.cardFooter}>
+                    <span className={styles.cardName}>{(c.name && c.name !== "Unnamed") ? c.name : "이름 없음"}</span>
+                    <span
+                      className={styles.personalityBadge}
+                      style={{ background: PERSONALITY_COLOR[c.personality_type] + "22", color: PERSONALITY_COLOR[c.personality_type] }}
+                    >
+                      {PERSONALITY_LABEL[c.personality_type] || c.personality_type}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
 
-          {/* Empty slot cards */}
-          {Array.from({ length: emptySlotCount }).map((_, i) => {
-            const slotIndex = characters.length + i;
-            const isPaid = slotIndex >= DEFAULT_SLOT_COUNT;
-            return (
-              <button
-                key={`empty-${i}`}
-                className={`${styles.emptySlot} ${isPaid ? styles.paidSlot : ""}`}
-                onClick={onCreateNew}
-              >
-                <span className={styles.emptyPlus}>+</span>
-                {isPaid && <span className={styles.paidBadge}>코인</span>}
-              </button>
-            );
-          })}
+            {/* Empty slot cards */}
+            {Array.from({ length: emptySlotCount }).map((_, i) => {
+              const slotIndex = characters.length + i;
+              const isPaid = slotIndex >= DEFAULT_SLOT_COUNT;
+              return (
+                <button
+                  key={`empty-${i}`}
+                  className={`${styles.emptySlot} ${isPaid ? styles.paidSlot : ""}`}
+                  onClick={onCreateNew}
+                >
+                  <span className={styles.emptyPlus}>+</span>
+                  {isPaid && <span className={styles.paidBadge}>코인</span>}
+                </button>
+              );
+            })}
 
-          {/* Add slot button (always last) */}
-          <button className={styles.addSlotCard} onClick={onAddSlot}>
-            <span className={styles.addSlotIcon}>＋</span>
-            <span className={styles.addSlotLabel}>슬롯 추가</span>
-            <span className={styles.addSlotCost}>{10} 🪙</span>
-          </button>
-        </div>
-      )}
+            {/* Add slot button (always last) */}
+            <button className={styles.addSlotCard} onClick={onAddSlot}>
+              <span className={styles.addSlotIcon}>＋</span>
+              <span className={styles.addSlotLabel}>슬롯 추가</span>
+              <span className={styles.addSlotCost}>{10} 🪙</span>
+            </button>
+          </div>
+        )}
+      </div>
 
-      {/* Banner ad — fixed at bottom */}
+      {/* Banner ad — always visible at bottom, outside scroll area */}
       <MainFooterBannerAd />
 
     </div>
