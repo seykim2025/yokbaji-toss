@@ -238,19 +238,25 @@ export async function generateReaction(
   recentDialogueIds?: string[],
   recentBaseAssetCodes?: string[],
 ): Promise<ReactionResult> {
+  const payload = {
+    character_id: characterId,
+    user_text: userMessage,
+    user_message: userMessage,
+    recent_dialogue_ids: recentDialogueIds ?? [],
+    recent_base_asset_codes: recentBaseAssetCodes ?? [],
+  };
+  console.log("[dialogue-request] character_id:", characterId);
+  console.log("[dialogue-request] user_message length:", userMessage.length);
+  console.log("[dialogue-request] payload keys:", Object.keys(payload));
   const res = await fetch(`${API_BASE}/api/reactions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      character_id: characterId,
-      user_text: userMessage,
-      user_message: userMessage,
-      recent_dialogue_ids: recentDialogueIds ?? [],
-      recent_base_asset_codes: recentBaseAssetCodes ?? [],
-    }),
+    body: JSON.stringify(payload),
   });
+  console.log("[dialogue-response] status:", res.status);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Unknown error" }));
+    console.log("[dialogue-response] error:", err.error);
     throw new Error(err.error || `HTTP ${res.status}`);
   }
   const data = await res.json();

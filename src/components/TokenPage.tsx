@@ -1,4 +1,5 @@
 import RewardedCoinButton from "./RewardedCoinButton";
+import { REWARDED_AD_COIN_AMOUNT } from "../config/ad.config";
 import styles from "./TokenPage.module.css";
 
 interface Props {
@@ -17,6 +18,9 @@ export default function TokenPage({ onBack, onCoinsAdded }: Props) {
       <div className={styles.body}>
         <span className={styles.icon}>🪙</span>
         <p className={styles.message}>광고를 보고 코인을 받아보세요</p>
+        <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 4px" }}>
+          광고 1회 완료 시 {REWARDED_AD_COIN_AMOUNT}코인 지급
+        </p>
 
         <div style={{ width: "100%", maxWidth: 320, marginTop: 8 }}>
           <RewardedCoinButton

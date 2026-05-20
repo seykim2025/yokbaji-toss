@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+﻿import { useRef, useState } from "react";
 import type { Personality, Gender, Character } from "../types";
 import { createCharacter } from "../api";
 import { isTossWebView } from "../toss";
@@ -40,7 +40,9 @@ async function dataUriToFile(dataUri: string, filename: string): Promise<File> {
 }
 
 export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHome }: Props) {
-  const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const albumRef = useRef<HTMLInputElement>(null);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -50,16 +52,24 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
   const [error, setError] = useState<string | null>(null);
   const [faceError, setFaceError] = useState(false);
 
-  async function handleTossPhotoPickOrFallback() {
+  function handlePhotoButtonClick() {
+    setShowPhotoOptions(true);
+  }
+
+  function handleCameraOption() {
+    setShowPhotoOptions(false);
+    cameraRef.current?.click();
+  }
+
+  async function handleAlbumOption() {
+    setShowPhotoOptions(false);
     if (isTossWebView()) {
       try {
         const sdk = await import("@apps-in-toss/web-framework");
         if (sdk.fetchAlbumPhotos) {
           const photos = await sdk.fetchAlbumPhotos({ maxCount: 1, maxWidth: 1024, base64: true });
           if (photos.length > 0) {
-            const photo = photos[0];
-            // dataUri is base64 string when base64:true
-            const file = await base64ToFile(photo.dataUri, "photo.jpg");
+            const file = await base64ToFile(photos[0].dataUri, "photo.jpg");
             setImage(file);
             setPreview(URL.createObjectURL(file));
             return;
@@ -67,10 +77,9 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
         }
       } catch (err) {
         console.error("[CreateScreen] fetchAlbumPhotos failed:", err);
-        // fall through to standard file input
       }
     }
-    fileRef.current?.click();
+    albumRef.current?.click();
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -173,7 +182,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
         {/* Photo upload */}
         <button
           className={styles.photoUpload}
-          onClick={handleTossPhotoPickOrFallback}
+          onClick={handlePhotoButtonClick}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleImageDrop}
           disabled={loading}
@@ -188,7 +197,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           )}
         </button>
         <input
-          ref={fileRef}
+          ref={cameraRef}
           type="file"
           accept="image/*"
           capture="user"
@@ -196,6 +205,46 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           disabled={loading}
           style={{ display: "none" }}
         />
+        <input
+          ref={albumRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          disabled={loading}
+          style={{ display: "none" }}
+        />
+
+        {showPhotoOptions && !loading && (
+          <div
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end", zIndex: 9999 }}
+            onClick={() => setShowPhotoOptions(false)}
+          >
+            <div
+              style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: "20px 16px 40px", width: "100%", display: "flex", flexDirection: "column", gap: 8 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#191f28", margin: "0 0 4px", textAlign: "center" }}>사진 선택</p>
+              <button
+                style={{ width: "100%", padding: "16px 0", fontSize: 16, fontWeight: 600, color: "#191f28", background: "#f2f3f4", border: "none", borderRadius: 12, cursor: "pointer" }}
+                onClick={handleCameraOption}
+              >
+                카메라로 찍기 (앞면)
+              </button>
+              <button
+                style={{ width: "100%", padding: "16px 0", fontSize: 16, fontWeight: 600, color: "#191f28", background: "#f2f3f4", border: "none", borderRadius: 12, cursor: "pointer" }}
+                onClick={handleAlbumOption}
+              >
+                앨범에서 선택
+              </button>
+              <button
+                style={{ width: "100%", padding: "14px 0", fontSize: 15, fontWeight: 500, color: "#6b7280", background: "none", border: "none", cursor: "pointer", marginTop: 4 }}
+                onClick={() => setShowPhotoOptions(false)}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Name */}
         <input
