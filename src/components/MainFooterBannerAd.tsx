@@ -3,18 +3,14 @@ import { BANNER_AD_GROUP_ID } from "../config/ad.config";
 import { attachBannerAd, initAds } from "../lib/tossAds";
 import { isTossWebView } from "../toss";
 
-interface Props {
-  hidden?: boolean;
-}
-
-export default function MainFooterBannerAd({ hidden }: Props) {
+export default function MainFooterBannerAd() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [adVisible, setAdVisible] = useState(false);
   const destroyRef = useRef<(() => void) | null>(null);
   const inWebView = isTossWebView();
 
   useEffect(() => {
-    if (hidden || !inWebView) return;
+    if (!inWebView) return;
 
     let cancelled = false;
 
@@ -40,18 +36,16 @@ export default function MainFooterBannerAd({ hidden }: Props) {
       destroyRef.current = null;
       setAdVisible(false);
     };
-  }, [hidden, inWebView]);
+  }, [inWebView]);
 
-  if (hidden) return null;
-
-  // In Toss WebView: real ad container (hidden until ad loads)
+  // In Toss WebView: always reserve 60px minimum so layout stays stable
   if (inWebView) {
     return (
       <div
         ref={containerRef}
         style={{
           width: "100%",
-          minHeight: adVisible ? 96 : 0,
+          minHeight: adVisible ? 96 : 60,
           overflow: "hidden",
           transition: "min-height 0.2s",
         }}

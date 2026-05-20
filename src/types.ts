@@ -14,8 +14,13 @@ export interface ReactionResult {
   character_id: string;
   user_message: string;
   dialogue: string;
+  dialogue_id?: string;
   video_url: string | null;
   personality_type: Personality;
+  gender_type?: string;
+  input_tag?: string;
+  intensity?: number;
+  base_asset_code?: string | null;
   cached: boolean;
 }
 

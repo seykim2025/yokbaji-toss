@@ -26,6 +26,8 @@ interface Props {
   version: string;
   userName?: string | null;
   isCreating?: boolean;
+  cachedCharacters?: Character[];
+  onCharactersLoaded?: (characters: Character[]) => void;
   onCreateNew: () => void;
   onSelectCharacter: (character: Character) => void;
   onAddSlot: () => void;
@@ -61,34 +63,63 @@ function getPaidCharacterIds(characters: Character[]): Set<string> {
   return paidIds;
 }
 
-export default function HomeScreen({ tokens, totalSlots, version, userName, isCreating, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function HomeScreen({ tokens, totalSlots, version, userName, cachedCharacters = [], onCharactersLoaded, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
+  const hasCache = cachedCharacters.length > 0;
+  const [characters, setCharacters] = useState<Character[]>(cachedCharacters);
+  const [loading, setLoading] = useState(!hasCache);
   const [slowLoad, setSlowLoad] = useState(false);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    setSlowLoad(false);
-    const slowTimer = setTimeout(() => setSlowLoad(true), 3000);
-    listCharacters()
-      .then((list) => {
-        const lastUsed = getLastUsed();
-        const sorted = [...list].sort((a, b) => {
-          const aTime = lastUsed[a.id] ?? a.created_at;
-          const bTime = lastUsed[b.id] ?? b.created_at;
-          return new Date(bTime).getTime() - new Date(aTime).getTime();
-        });
-        setCharacters(sorted);
-      })
-      .catch(() => setCharacters([]))
-      .finally(() => {
-        clearTimeout(slowTimer);
-        setLoading(false);
-        setSlowLoad(false);
-      });
+  const applySort = useCallback((list: Character[]) => {
+    const lastUsed = getLastUsed();
+    return [...list].sort((a, b) => {
+      const aTime = lastUsed[a.id] ?? a.created_at;
+      const bTime = lastUsed[b.id] ?? b.created_at;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    });
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback((background = false) => {
+    const t0 = performance.now();
+    console.log("[yokbaji] character list fetch start (background=" + background + ")");
+    if (!background) {
+      setLoading(true);
+      setSlowLoad(false);
+    }
+    const slowTimer = background ? null : setTimeout(() => setSlowLoad(true), 3000);
+    listCharacters()
+      .then((list) => {
+        const elapsed = (performance.now() - t0).toFixed(0);
+        console.log("[yokbaji] character list fetch done:", elapsed + "ms, count:", list.length);
+        const sorted = applySort(list);
+        setCharacters(sorted);
+        onCharactersLoaded?.(sorted);
+      })
+      .catch(() => { if (!background) setCharacters([]); })
+      .finally(() => {
+        if (slowTimer) clearTimeout(slowTimer);
+        if (!background) {
+          setLoading(false);
+          setSlowLoad(false);
+        }
+      });
+  }, [applySort, onCharactersLoaded]);
+
+  useEffect(() => {
+    const t0 = performance.now();
+    console.log("[yokbaji] HomeScreen mount:", t0.toFixed(0) + "ms, cached:", cachedCharacters.length);
+    if (hasCache) {
+      // Re-apply sort with latest last_used data, then do background refresh
+      setCharacters(applySort(cachedCharacters));
+      load(true);
+    } else {
+      load(false);
+    }
+    // measure full render complete
+    requestAnimationFrame(() => {
+      console.log("[yokbaji] HomeScreen render complete:", (performance.now() - t0).toFixed(0) + "ms");
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const emptySlotCount = Math.max(0, totalSlots - characters.length);
   const paidCharIds = getPaidCharacterIds(characters);
@@ -143,6 +174,11 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
                       src={getImageUrl(c.image_path)}
                       alt={c.name}
                       className={styles.cardImage}
+                      loading="lazy"
+                      onLoad={(e) => {
+                        const img = e.target as HTMLImageElement;
+                        console.log("[yokbaji] thumbnail loaded:", img.src.split("/").pop());
+                      }}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
                   ) : (
@@ -189,8 +225,8 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, isCr
         </div>
       )}
 
-      {/* Banner ad — hidden while creating/generating to avoid overlap */}
-      <MainFooterBannerAd hidden={isCreating} />
+      {/* Banner ad — fixed at bottom */}
+      <MainFooterBannerAd />
 
     </div>
   );

@@ -14,6 +14,9 @@ import { initAds } from "./lib/tossAds";
 import type { TossUser } from "./auth";
 import "./index.css";
 
+const _t0 = performance.now();
+console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
+
 export const APP_VERSION = "v0.0.6";
 const INITIAL_TOKENS = 100;
 const DEFAULTS_V3_KEY = "yokbaji_defaults_v3_seeded";
@@ -61,6 +64,7 @@ export default function App() {
   const [totalSlots, setTotalSlots] = useState(() => getSlotCount());
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCoinShortage, setShowCoinShortage] = useState(false);
+  const [cachedCharacters, setCachedCharacters] = useState<Character[]>([]);
 
   // On mount: check session, then route to login or home
   useEffect(() => {
@@ -105,9 +109,10 @@ export default function App() {
   }, []);
 
   const goHome = useCallback(() => {
+    console.log("[yokbaji] return-to-home, cached chars:", cachedCharacters.length);
     setScreen("home");
     setCharacter(null);
-  }, []);
+  }, [cachedCharacters.length]);
 
   const goToken = useCallback(() => {
     setPrevScreen(screen ?? "home");
@@ -153,6 +158,8 @@ export default function App() {
             totalSlots={totalSlots}
             version={APP_VERSION}
             userName={userName}
+            cachedCharacters={cachedCharacters}
+            onCharactersLoaded={setCachedCharacters}
             onCreateNew={() => setScreen("create")}
             onSelectCharacter={handleSelectCharacter}
             onAddSlot={handleAddSlot}

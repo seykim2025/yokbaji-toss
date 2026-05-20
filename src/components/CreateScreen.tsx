@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { Personality, Gender, Character } from "../types";
 import { createCharacter } from "../api";
 import { isTossWebView } from "../toss";
+import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./CreateScreen.module.css";
 
 interface Props {
@@ -256,18 +257,24 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
             )}
           </div>
         )}
+      </div>
 
-        <button
-          className={`${styles.submitBtn} ${canSubmit ? styles.submitActive : ""}`}
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-        >
-          {loading ? (
-            <span className={styles.spinner} />
-          ) : (
-            "생성하기"
-          )}
-        </button>
+      {/* Fixed footer: create button + ad banner */}
+      <div className={styles.footer}>
+        <div className={styles.submitArea}>
+          <button
+            className={`${styles.submitBtn} ${canSubmit ? styles.submitActive : ""}`}
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+          >
+            {loading ? (
+              <span className={styles.spinner} />
+            ) : (
+              "생성하기"
+            )}
+          </button>
+        </div>
+        <MainFooterBannerAd />
       </div>
     </div>
   );

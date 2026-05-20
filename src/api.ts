@@ -234,12 +234,20 @@ export async function getCharacter(id: string): Promise<Character> {
 
 export async function generateReaction(
   characterId: string,
-  userMessage: string
+  userMessage: string,
+  recentDialogueIds?: string[],
+  recentBaseAssetCodes?: string[],
 ): Promise<ReactionResult> {
   const res = await fetch(`${API_BASE}/api/reactions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ character_id: characterId, user_message: userMessage }),
+    body: JSON.stringify({
+      character_id: characterId,
+      user_text: userMessage,
+      user_message: userMessage,
+      recent_dialogue_ids: recentDialogueIds ?? [],
+      recent_base_asset_codes: recentBaseAssetCodes ?? [],
+    }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Unknown error" }));

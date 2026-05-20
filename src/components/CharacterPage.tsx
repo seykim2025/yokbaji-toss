@@ -125,6 +125,10 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
   const waitingLineRef = useRef<string>(waitingLine);
   const waitingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Recent history for repetition reduction (sent to engine each request)
+  const [recentDialogueIds, setRecentDialogueIds] = useState<string[]>([]);
+  const [recentBaseAssetCodes, setRecentBaseAssetCodes] = useState<string[]>([]);
+
   // Conversation history
   const [showHistory, setShowHistory] = useState(false);
   const [conversations, setConversations] = useState<ConversationRecord[]>(() =>
@@ -178,13 +182,20 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
     setError(null);
     setSelectedConv(null);
     try {
-      const result = await generateReaction(character.id, text);
+      const result = await generateReaction(character.id, text, recentDialogueIds, recentBaseAssetCodes);
       setReaction(result);
       setPageState("done");
       setMessage("");
       const newCount = incrementFreeCount(character.id);
       setFreeCount(newCount);
       setLastUsed(character.id);
+      // Update recent history for repetition reduction
+      if (result.dialogue_id) {
+        setRecentDialogueIds((prev) => [result.dialogue_id!, ...prev].slice(0, 10));
+      }
+      if (result.base_asset_code) {
+        setRecentBaseAssetCodes((prev) => [result.base_asset_code!, ...prev].slice(0, 5));
+      }
       // Save to history
       saveConversation(character.id, text, result.dialogue, result.video_url);
       setConversations(getConversations(character.id));
@@ -439,8 +450,8 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
         </div>
       )}
 
-      {/* Bottom banner ad */}
-      <MainFooterBannerAd hidden={isLoading} />
+      {/* Bottom banner ad — always visible at bottom */}
+      <MainFooterBannerAd />
 
       {/* Delete character modal */}
       {showDeleteModal && (
