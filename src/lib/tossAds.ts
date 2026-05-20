@@ -63,7 +63,10 @@ export async function loadRewardedAd(
 ): Promise<(() => void) | null> {
   try {
     const sdk = await getAdSdk();
-    if (!sdk.loadFullScreenAd?.isSupported?.()) return null;
+    if (!sdk.loadFullScreenAd?.isSupported?.()) {
+      onError(new Error("loadRewardedAd: not supported in this Toss app version"));
+      return null;
+    }
     const unregister = sdk.loadFullScreenAd({
       options: { adGroupId },
       onEvent: (e) => onEvent(e.type),
