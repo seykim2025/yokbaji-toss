@@ -1,7 +1,7 @@
 // user-facing unit: 코인
-export const REWARDED_AD_COIN_AMOUNT = 15;
+export const REWARDED_AD_COIN_AMOUNT = 5;
 export const DAILY_REWARDED_AD_LIMIT = 3;
-export const DAILY_REWARDED_COIN_LIMIT = 45;
+export const DAILY_REWARDED_COIN_LIMIT = 9;
 
 // Ad group IDs — set via env vars; fall back to placeholder
 export const BANNER_AD_GROUP_ID =
