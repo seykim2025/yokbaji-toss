@@ -10,7 +10,7 @@ interface Props {
 
 type State = "idle" | "loading" | "ready" | "showing" | "done" | "error";
 
-export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보고 15코인 받기" }: Props) {
+export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보고 10코인 받기" }: Props) {
   const [state, setState] = useState<State>("idle");
   const [msg, setMsg] = useState("");
 

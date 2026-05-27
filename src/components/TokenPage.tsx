@@ -16,11 +16,11 @@ export default function TokenPage({ onBack, onCoinsAdded }: Props) {
       </header>
       <div className={styles.body}>
         <span className={styles.icon}>🪙</span>
-        <p className={styles.message}>광고를 보고 15코인을 받아보세요</p>
+        <p className={styles.message}>광고를 보고 10코인을 받아보세요</p>
 
         <div style={{ width: "100%", maxWidth: 320, marginTop: 8 }}>
           <RewardedCoinButton
-            label="광고 보고 15코인 받기"
+            label="광고 보고 10코인 받기"
             onCoinsAdded={(amount) => {
               onCoinsAdded?.(amount);
               onBack();

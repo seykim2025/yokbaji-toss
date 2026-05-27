@@ -27,7 +27,7 @@ const LOCAL_SLOT_COUNT_KEY = "yokbaji_slot_count";
 const LOCAL_CONVERSATIONS_KEY = "yokbaji_conversations";
 const LOCAL_DEFAULT_IDS_KEY = "yokbaji_default_ids";
 export const FREE_LIMIT = 5;
-export const DEFAULT_SLOT_COUNT = 5;
+export const DEFAULT_SLOT_COUNT = 4;
 export const SLOT_ADD_COST = 10;
 
 // ── Default character protection ─────────────────────────────────────────────
