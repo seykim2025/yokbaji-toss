@@ -166,7 +166,7 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
                   onClick={() => onSelectCharacter(c)}
                 >
                   <div className={styles.cardImageWrap}>
-                    {isPaid && <span className={styles.charPaidBadge}>코인</span>}
+                    {isPaid && <span className={styles.charPaidBadge}>🪙</span>}
                     {c.image_path ? (
                       <img
                         src={getImageUrl(c.image_path)}
