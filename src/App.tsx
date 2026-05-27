@@ -19,7 +19,7 @@ import "./index.css";
 const _t0 = performance.now();
 console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 
-export const APP_VERSION = "v0.1.1";
+export const APP_VERSION = "v0.1.2";
 
 // QA Reset Logic (removed destructive local wipe, server is source of truth)
 
@@ -65,6 +65,14 @@ export default function App() {
 
   // On mount: check session, then route to login or home
   useEffect(() => {
+    // Force QA Reset for version upgrade
+    const lastVersion = localStorage.getItem("yokbaji_version");
+    if (lastVersion !== APP_VERSION) {
+      localStorage.clear();
+      localStorage.setItem("yokbaji_version", APP_VERSION);
+      console.log("[yokbaji] QA Reset: local cache cleared for new version", APP_VERSION);
+    }
+
     checkTossSession().then((result) => {
       if (result.ok) {
         setUserName(result.user.name ?? null);
@@ -205,7 +213,6 @@ export default function App() {
             version={APP_VERSION}
             userName={userName}
             cachedCharacters={cachedCharacters}
-            onCharactersLoaded={setCachedCharacters}
             onCreateNew={(isPaid) => {
               setCreatingInPaidSlot(isPaid);
               setScreen("create");

@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, API_BASE, getLastUsed } from "../api";
+import { API_BASE, getLastUsed } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
@@ -27,8 +27,7 @@ interface Props {
   version: string;
   userName?: string | null;
   isCreating?: boolean;
-  cachedCharacters?: Character[];
-  onCharactersLoaded?: (characters: Character[]) => void;
+  cachedCharacters: Character[];
   onCreateNew: (isPaid: boolean) => void;
   onSelectCharacter: (character: Character) => void;
   onAddSlot: () => void;
@@ -57,11 +56,7 @@ function getImageUrl(path: string): string {
 
 
 
-export default function HomeScreen({ tokens, freeSlots, paidSlots, version, userName, cachedCharacters = [], onCharactersLoaded, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
-  const hasCache = cachedCharacters.length > 0;
-  const [characters, setCharacters] = useState<Character[]>(cachedCharacters);
-  const [loading, setLoading] = useState(!hasCache);
-  const [slowLoad, setSlowLoad] = useState(false);
+export default function HomeScreen({ tokens, freeSlots, paidSlots, version, userName, cachedCharacters, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
 
   const applySort = useCallback((list: Character[]) => {
     const lastUsed = getLastUsed();
@@ -72,48 +67,7 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
     });
   }, []);
 
-  const load = useCallback((background = false) => {
-    const t0 = performance.now();
-    console.log("[yokbaji] character list fetch start (background=" + background + ")");
-    if (!background) {
-      setLoading(true);
-      setSlowLoad(false);
-    }
-    const slowTimer = background ? null : setTimeout(() => setSlowLoad(true), 3000);
-    listCharacters()
-      .then((list) => {
-        const elapsed = (performance.now() - t0).toFixed(0);
-        console.log("[yokbaji] character list fetch done:", elapsed + "ms, count:", list.length);
-        const sorted = applySort(list);
-        setCharacters(sorted);
-        onCharactersLoaded?.(sorted);
-      })
-      .catch(() => { if (!background) setCharacters([]); })
-      .finally(() => {
-        if (slowTimer) clearTimeout(slowTimer);
-        if (!background) {
-          setLoading(false);
-          setSlowLoad(false);
-        }
-      });
-  }, [applySort, onCharactersLoaded]);
-
-  useEffect(() => {
-    const t0 = performance.now();
-    console.log("[yokbaji] HomeScreen mount:", t0.toFixed(0) + "ms, cached:", cachedCharacters.length);
-    if (hasCache) {
-      // Re-apply sort with latest last_used data, then do background refresh
-      setCharacters(applySort(cachedCharacters));
-      load(true);
-    } else {
-      load(false);
-    }
-    // measure full render complete
-    requestAnimationFrame(() => {
-      console.log("[yokbaji] HomeScreen render complete:", (performance.now() - t0).toFixed(0) + "ms");
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const characters = applySort(cachedCharacters);
 
   const freeUsed = characters.filter((c) => c.slotType === "free").length;
   const paidUsed = characters.filter((c) => c.slotType === "paid").length;
@@ -144,15 +98,8 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
 
       {/* Scrollable character grid area */}
       <div className={styles.scrollContent}>
-        {loading ? (
-          <>
-            <SkeletonGrid />
-            {slowLoad && (
-              <div className={styles.loading} style={{ flex: "none", paddingBottom: 16 }}>
-                <p className={styles.loadingText}>조금 오래 걸리고 있어요. 잠시만 기다려주세요 🙏</p>
-              </div>
-            )}
-          </>
+        {characters.length === 0 && freeSlots === 0 && paidSlots === 0 ? (
+          <SkeletonGrid />
         ) : (
           <div className={styles.grid}>
             {/* Character cards */}
@@ -220,12 +167,14 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
               </button>
             ))}
 
-            {/* Add slot button (always last) */}
-            <button className={styles.addSlotCard} onClick={onAddSlot}>
-              <span className={styles.addSlotIcon}>＋</span>
-              <span className={styles.addSlotLabel}>슬롯 추가</span>
-              <span className={styles.addSlotCost}>{10} 🪙</span>
-            </button>
+            {/* Add slot button (always last, only if no free slots) */}
+            {freeEmptyCount === 0 && (
+              <button className={styles.addSlotCard} onClick={onAddSlot}>
+                <span className={styles.addSlotIcon}>＋</span>
+                <span className={styles.addSlotLabel}>슬롯 추가</span>
+                <span className={styles.addSlotCost}>{10} 🪙</span>
+              </button>
+            )}
           </div>
         )}
       </div>
