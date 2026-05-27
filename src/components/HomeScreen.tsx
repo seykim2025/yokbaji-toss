@@ -193,7 +193,15 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
 
       {/* Banner ad — always visible at bottom, outside scroll area */}
       <MainFooterBannerAd />
-
+      <div style={{ position: "fixed", top: 50, left: 0, right: 0, background: "rgba(255,0,0,0.8)", color: "#fff", fontSize: 10, zIndex: 9999, padding: 8, pointerEvents: "none", whiteSpace: "pre-wrap" }}>
+        {`HomeScreen Rendered:
+tokens=${tokens}
+characters.length=${characters.length}
+freeSlots=${freeSlots}, freeUsed=${freeUsed}
+paidSlots=${paidSlots}, paidUsed=${paidUsed}
+freeEmpty=${freeEmptyCount}, paidEmpty=${paidEmptyCount}
+showPaidCTA=${freeEmptyCount === 0}`}
+      </div>
     </div>
   );
 }

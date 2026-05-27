@@ -37,6 +37,7 @@ export default function App() {
   const [creatingInPaidSlot, setCreatingInPaidSlot] = useState(false);
   const [cachedCharacters, setCachedCharacters] = useState<Character[]>([]);
   const [isLoadingState, setIsLoadingState] = useState(true);
+  const [debugLog, setDebugLog] = useState("");
 
   // Override setScreen to push state
   const setScreen = useCallback((newScreen: AppScreen, replace = false) => {
@@ -99,8 +100,10 @@ export default function App() {
   const loadUserState = useCallback(async () => {
     try {
       console.log("[yokbaji] fetchUserState start...");
+      setDebugLog(prev => prev + "\nfetch start");
       const state = await import("./api").then(m => m.fetchUserState());
       console.log("[yokbaji] fetchUserState response:", state);
+      setDebugLog(prev => prev + "\nfetch success, defaultChars.length=" + (state.defaultCharacters?.length ?? "undefined"));
       
       setTokens(state.coinBalance);
       setFreeSlots(state.freeSlotCount);
@@ -118,10 +121,12 @@ export default function App() {
       
       const allChars = [...defaultCharsMapped, ...(state.characters || [])];
       console.log("[yokbaji] mergedCharacters:", allChars);
+      setDebugLog(prev => prev + "\nmergedChars=" + allChars.length + ", tokens=" + state.coinBalance);
       
       setCachedCharacters(allChars);
-    } catch (e) {
+    } catch (e: any) {
       console.error("[yokbaji] load state error:", e);
+      setDebugLog(prev => prev + "\nhydration_error: " + e.message);
     } finally {
       setIsLoadingState(false);
     }
@@ -278,6 +283,9 @@ export default function App() {
         onConfirm={handleAddSlotConfirm}
         onCancel={() => setShowSlotConfirm(false)}
       />
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.8)", color: "#0f0", fontSize: 10, zIndex: 9999, padding: 8, pointerEvents: "none", whiteSpace: "pre-wrap" }}>
+        {debugLog}
+      </div>
     </>
   );
 }
