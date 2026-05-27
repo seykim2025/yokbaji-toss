@@ -51,6 +51,8 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
   const [error, setError] = useState<string | null>(null);
   const [faceError, setFaceError] = useState(false);
   const [showPickerModal, setShowPickerModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [createdChar, setCreatedChar] = useState<Character | null>(null);
 
   function handleTossPhotoPickOrFallback() {
     setShowPickerModal(true);
@@ -133,7 +135,8 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
       console.log("[CreateScreen] creating character:", uploadFile.name, uploadFile.size, uploadFile.type);
       const character = await createCharacter(uploadFile, personality, gender, name);
       assignSlotForCharacter(character.id, isPaidSlot);
-      onCreated(character);
+      setCreatedChar(character);
+      setShowSuccess(true);
     } catch (err: unknown) {
       const rawMsg = err instanceof Error ? err.message : "캐릭터 생성 실패";
       console.error("[CreateScreen] createCharacter error:", rawMsg, err);
@@ -275,6 +278,9 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
             )}
           </div>
         )}
+      </div>
+
+      <div className={styles.footer}>
         <div className={styles.submitArea}>
           <button
             className={`${styles.submitBtn} ${canSubmit ? styles.submitActive : ""}`}
@@ -288,9 +294,6 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
             )}
           </button>
         </div>
-      </div>
-
-      <div className={styles.footer}>
         <MainFooterBannerAd />
       </div>
 
@@ -324,6 +327,32 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
                 취소
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccess && createdChar && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
+        >
+          <div
+            style={{ background: "#fff", borderRadius: 16, padding: "28px 24px 20px", width: "min(300px, 88vw)", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ fontSize: 18, fontWeight: 700, color: "#191f28", marginBottom: 12 }}>생성 완료!</p>
+            <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24, lineHeight: 1.5 }}>
+              캐릭터가 생성되었습니다.<br />
+              이제 캐릭터에게 말을 걸어<br />감정을 풀어보세요!
+            </p>
+            <button
+              style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "#3182f6", color: "#fff", fontSize: 16, fontWeight: 600, border: "none", cursor: "pointer" }}
+              onClick={() => {
+                setShowSuccess(false);
+                onCreated(createdChar);
+              }}
+            >
+              확인
+            </button>
           </div>
         </div>
       )}

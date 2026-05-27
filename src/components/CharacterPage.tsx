@@ -17,6 +17,7 @@ interface Props {
   onHome: () => void;
   onCharge: () => void;
   onDeleted?: () => void;
+  onTokenSpent?: (amount: number) => void;
 }
 
 type PageState = "idle" | "loading" | "done" | "error";
@@ -120,7 +121,7 @@ function formatTimestamp(iso: string): string {
   return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
 }
 
-export default function CharacterPage({ character, tokens, onHome, onCharge, onDeleted }: Props) {
+export default function CharacterPage({ character, tokens, onHome, onCharge, onDeleted, onTokenSpent }: Props) {
   const [message, setMessage] = useState("");
   const [pageState, setPageState] = useState<PageState>("idle");
   const [reaction, setReaction] = useState<ReactionResult | null>(null);
@@ -188,8 +189,22 @@ export default function CharacterPage({ character, tokens, onHome, onCharge, onD
     setPageState("loading");
     setError(null);
     setSelectedConv(null);
+
+    // If paid, check tokens first
+    if (isPaid && tokens < 1) {
+      setPageState("idle");
+      onCharge();
+      return;
+    }
+
     try {
       const result = await generateReaction(character.id, text, recentDialogueIds, recentBaseAssetCodes);
+      
+      // Deduct coin upon success if paid
+      if (isPaid) {
+        onTokenSpent?.(1);
+      }
+
       setReaction(result);
       setPageState("done");
       setMessage("");

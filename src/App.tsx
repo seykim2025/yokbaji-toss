@@ -19,7 +19,7 @@ import "./index.css";
 const _t0 = performance.now();
 console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 
-export const APP_VERSION = "v0.1.0";
+export const APP_VERSION = "v0.1.1";
 
 // v0.1.0 QA Reset Logic
 const RESET_V9_KEY = "yokbaji_reset_v9_1";
@@ -240,6 +240,11 @@ export default function App() {
             onBack={goHome}
             onHome={goHome}
             onCharge={goToken}
+            onTokenSpent={(amount) => {
+              if (spendCoins(amount)) {
+                setTokens(getCoinBalance());
+              }
+            }}
           />
         ) : null;
       case "token":
