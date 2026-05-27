@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { Personality, Gender, Character } from "../types";
-import { createCharacter, assignSlotForCharacter } from "../api";
+import { createCharacter } from "../api";
 import { isTossWebView } from "../toss";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./CreateScreen.module.css";
@@ -133,8 +133,7 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
         uploadFile = await dataUriToFile(preview!, "photo.jpg");
       }
       console.log("[CreateScreen] creating character:", uploadFile.name, uploadFile.size, uploadFile.type);
-      const character = await createCharacter(uploadFile, personality, gender, name);
-      assignSlotForCharacter(character.id, isPaidSlot);
+      const character = await createCharacter(uploadFile, personality, gender, name, isPaidSlot ? "paid" : "free", 0);
       setCreatedChar(character);
       setShowSuccess(true);
     } catch (err: unknown) {

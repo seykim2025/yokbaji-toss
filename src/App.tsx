@@ -8,8 +8,8 @@ import ExitModal from "./components/ExitModal";
 import LoginScreen from "./components/LoginScreen";
 import CoinShortageModal from "./components/CoinShortageModal";
 import ConfirmModal from "./components/ConfirmModal";
-import { getSlotCount, incrementSlotCount, SLOT_ADD_COST, createCharacter, markAsDefault } from "./api";
-import { getCoinBalance, spendCoins } from "./services/coin.service";
+import { createCharacter, fetchUserState, purchaseSlot, SLOT_ADD_COST } from "./api";
+// Removed local coin.service imports
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
 import { initAds } from "./lib/tossAds";
@@ -21,58 +21,21 @@ console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 
 export const APP_VERSION = "v0.1.1";
 
-// v0.1.0 QA Reset Logic
-const RESET_V9_KEY = "yokbaji_reset_v9_1";
-if (!localStorage.getItem(RESET_V9_KEY)) {
-  localStorage.removeItem("yokbaji_character_ids");
-  localStorage.removeItem("yokbaji_paid_slot_assignments");
-  localStorage.removeItem("yokbaji_slot_count");
-  localStorage.removeItem("yokbaji_default_ids");
-  localStorage.removeItem("yokbaji_conversations");
-  localStorage.removeItem("yokbaji_last_used");
-  localStorage.removeItem("yokbaji_free_count");
-  localStorage.setItem("yokbaji_coin_balance", "10");
-  localStorage.setItem(RESET_V9_KEY, "1");
-}
-
-async function seedDefaultCharacter(): Promise<void> {
-  if (localStorage.getItem("yokbaji_seed_v9_1")) return;
-  try {
-    const res1 = await fetch("/girl.jpeg");
-    if (res1.ok) {
-      const blob1 = await res1.blob();
-      const img1 = new File([blob1], "girl.jpeg", { type: "image/jpeg" });
-      const c1 = await createCharacter(img1, "WEAK", "F", "온순이");
-      markAsDefault(c1.id);
-    }
-
-    const res2 = await fetch("/man.jpeg");
-    if (res2.ok) {
-      const blob2 = await res2.blob();
-      const img2 = new File([blob2], "man.jpeg", { type: "image/jpeg" });
-      const c2 = await createCharacter(img2, "ANGRY", "M", "버럭이");
-      markAsDefault(c2.id);
-    }
-
-    localStorage.setItem("yokbaji_seed_v9_1", "1");
-  } catch (err) {
-    console.error("[yokbaji] seed error:", err);
-  }
-}
+// QA Reset Logic (removed destructive local wipe, server is source of truth)
 
 export default function App() {
   const [screen, _setScreen] = useState<AppScreen | null>(null); // null = checking session
   const [userName, setUserName] = useState<string | null>(null);
   const [character, setCharacter] = useState<Character | null>(null);
   const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
-  const [tokens, setTokens] = useState(() => getCoinBalance());
-  const [totalSlots, setTotalSlots] = useState(() => getSlotCount());
+  const [tokens, setTokens] = useState(0);
+  const [totalSlots, setTotalSlots] = useState(4);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCoinShortage, setShowCoinShortage] = useState(false);
   const [showSlotConfirm, setShowSlotConfirm] = useState(false);
   const [creatingInPaidSlot, setCreatingInPaidSlot] = useState(false);
   const [cachedCharacters, setCachedCharacters] = useState<Character[]>([]);
-  const [isSeeding, setIsSeeding] = useState(true);
+  const [isLoadingState, setIsLoadingState] = useState(true);
 
   // Override setScreen to push state
   const setScreen = useCallback((newScreen: AppScreen, replace = false) => {
@@ -130,11 +93,37 @@ export default function App() {
     return () => { setScreenAwake(false); };
   }, []);
 
-  useEffect(() => {
-    seedDefaultCharacter().finally(() => setIsSeeding(false));
+  // Load user state from server after session check
+  const loadUserState = useCallback(async () => {
+    try {
+      const state = await import("./api").then(m => m.fetchUserState());
+      setTokens(state.coinBalance);
+      setTotalSlots(state.freeSlotCount + state.paidSlotCount);
+      // Combine user chars + default chars
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const allChars = [...(state.defaultCharacters as any[]).map((c: any) => ({
+        id: c.character_id,
+        name: c.name || "Unnamed",
+        personality_type: c.personality_type,
+        gender_type: c.gender_type,
+        image_path: c.image_path,
+        created_at: c.created_at,
+      })), ...state.characters];
+      setCachedCharacters(allChars);
+    } catch (e) {
+      console.error("load state error", e);
+    } finally {
+      setIsLoadingState(false);
+    }
   }, []);
 
-
+  useEffect(() => {
+    if (screen && screen !== "login") {
+      loadUserState();
+    } else {
+      setIsLoadingState(false);
+    }
+  }, [screen, loadUserState]);
 
   // Listen for Toss WebView close (X button) — show exit confirmation
   useEffect(() => {
@@ -178,16 +167,18 @@ export default function App() {
     setShowSlotConfirm(true);
   }, []);
 
-  const handleAddSlotConfirm = useCallback(() => {
+  const handleAddSlotConfirm = useCallback(async () => {
     setShowSlotConfirm(false);
     if (tokens < SLOT_ADD_COST) {
       setShowCoinShortage(true);
       return;
     }
-    if (spendCoins(SLOT_ADD_COST)) {
-      setTokens(getCoinBalance());
-      const next = incrementSlotCount();
-      setTotalSlots(next);
+    try {
+      const res = await purchaseSlot();
+      setTokens(res.coinBalance);
+      setTotalSlots(2 + res.paidSlotCount); // Assume 2 free slots
+    } catch {
+      // Handle error
     }
   }, [tokens]);
 
@@ -195,8 +186,8 @@ export default function App() {
     setTokens((t) => t + amount);
   }, []);
 
-  if (screen === null || isSeeding) {
-    return null; // splash while checking session or seeding
+  if (screen === null || isLoadingState) {
+    return null; // splash while checking session or loading state
   }
 
   const content = (() => {
@@ -241,9 +232,7 @@ export default function App() {
             onHome={goHome}
             onCharge={goToken}
             onTokenSpent={(amount) => {
-              if (spendCoins(amount)) {
-                setTokens(getCoinBalance());
-              }
+              setTokens((t) => t - amount);
             }}
           />
         ) : null;

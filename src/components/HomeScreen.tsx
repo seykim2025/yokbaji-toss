@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT, getPaidCharacterIds } from "../api";
+import { listCharacters, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
@@ -114,9 +114,8 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const paidCharIds = getPaidCharacterIds(characters);
-  const freeUsed = characters.filter((c) => !paidCharIds.has(c.id)).length;
-  const paidUsed = characters.filter((c) => paidCharIds.has(c.id)).length;
+  const freeUsed = characters.filter((c) => c.slotType !== "paid").length;
+  const paidUsed = characters.filter((c) => c.slotType === "paid").length;
 
   const freeEmptyCount = Math.max(0, DEFAULT_SLOT_COUNT - freeUsed);
   const paidEmptyCount = Math.max(0, (totalSlots - DEFAULT_SLOT_COUNT) - paidUsed);
@@ -157,7 +156,7 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
           <div className={styles.grid}>
             {/* Character cards */}
             {characters.map((c) => {
-              const isPaid = paidCharIds.has(c.id);
+              const isPaid = c.slotType === "paid";
               return (
                 <button
                   key={c.id}

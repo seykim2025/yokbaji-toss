@@ -52,10 +52,10 @@ export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보�
 
       await showRewardedAd(
         REWARDED_AD_GROUP_ID,
-        () => {
+        async () => {
           // userEarnedReward — grant coin
           console.log("[reward-ad] ad completed");
-          const result = grantReward(eventId);
+          const result = await grantReward(eventId);
           if (result.ok) {
             console.log(`[reward-ad] reward amount = ${result.coinsAdded}`);
             setState("done");

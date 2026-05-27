@@ -20,51 +20,71 @@ export async function exchangeAuthCode(
   }
 }
 
-const LOCAL_CHAR_IDS_KEY = "yokbaji_character_ids";
 const LOCAL_LAST_USED_KEY = "yokbaji_last_used";
 const LOCAL_FREE_COUNT_KEY = "yokbaji_free_count";
-const LOCAL_SLOT_COUNT_KEY = "yokbaji_slot_count";
 const LOCAL_CONVERSATIONS_KEY = "yokbaji_conversations";
-const LOCAL_DEFAULT_IDS_KEY = "yokbaji_default_ids";
 export const FREE_LIMIT = 5;
 export const DEFAULT_SLOT_COUNT = 4;
 export const SLOT_ADD_COST = 10;
 
+export function getUserKey(): string {
+  try {
+    const raw = localStorage.getItem("yokbaji_session_user");
+    if (!raw) return "";
+    return JSON.parse(raw).userKey || "";
+  } catch {
+    return "";
+  }
+}
+
+export interface UserState {
+  userKey: string;
+  coinBalance: number;
+  freeSlotCount: number;
+  paidSlotCount: number;
+  characters: Character[];
+  defaultCharacters: string[];
+}
+
+export async function fetchUserState(): Promise<UserState> {
+  const userKey = getUserKey();
+  if (!userKey) throw new Error("Not logged in");
+
+  const res = await fetch(`${API_BASE}/api/users/me/state`, {
+    headers: { "x-user-key": userKey }
+  });
+  if (!res.ok) throw new Error("Failed to fetch user state");
+  
+  const raw = await res.json();
+  return {
+    ...raw,
+    characters: raw.characters.map(mapCharacter)
+  };
+}
+
+export async function purchaseSlot(): Promise<{ paidSlotCount: number; coinBalance: number }> {
+  const userKey = getUserKey();
+  const res = await fetch(`${API_BASE}/api/users/me/slots/purchase`, {
+    method: "POST",
+    headers: { "x-user-key": userKey }
+  });
+  if (!res.ok) throw new Error("Failed to purchase slot");
+  return res.json();
+}
+
+export async function spendConversationCoin(): Promise<{ success: boolean; coinBalance: number }> {
+  const userKey = getUserKey();
+  const res = await fetch(`${API_BASE}/api/users/me/coins/spend-conversation`, {
+    method: "POST",
+    headers: { "x-user-key": userKey }
+  });
+  if (!res.ok) throw new Error("Failed to spend coin");
+  return res.json();
+}
+
 // ── Default character protection ─────────────────────────────────────────────
 
-export function markAsDefault(id: string): void {
-  try {
-    const raw = localStorage.getItem(LOCAL_DEFAULT_IDS_KEY);
-    const ids: string[] = raw ? JSON.parse(raw) : [];
-    if (!ids.includes(id)) {
-      ids.push(id);
-      localStorage.setItem(LOCAL_DEFAULT_IDS_KEY, JSON.stringify(ids));
-    }
-  } catch { /* ignore */ }
-}
-
-export function isDefaultCharacter(id: string): boolean {
-  try {
-    const raw = localStorage.getItem(LOCAL_DEFAULT_IDS_KEY);
-    if (!raw) return false;
-    return (JSON.parse(raw) as string[]).includes(id);
-  } catch { return false; }
-}
-
-// ── Slot management ──────────────────────────────────────────────────────────
-
-export function getSlotCount(): number {
-  try {
-    const raw = localStorage.getItem(LOCAL_SLOT_COUNT_KEY);
-    return raw ? parseInt(raw, 10) : DEFAULT_SLOT_COUNT;
-  } catch { return DEFAULT_SLOT_COUNT; }
-}
-
-export function incrementSlotCount(): number {
-  const next = getSlotCount() + 1;
-  localStorage.setItem(LOCAL_SLOT_COUNT_KEY, String(next));
-  return next;
-}
+// Removed local default/slot tracking
 
 // ── Conversation history ──────────────────────────────────────────────────────
 
@@ -155,72 +175,7 @@ export function isFreeExhausted(characterId: string): boolean {
   return getFreeCount(characterId) >= FREE_LIMIT;
 }
 
-function getSavedCharacterIds(): Set<string> {
-  try {
-    const raw = localStorage.getItem(LOCAL_CHAR_IDS_KEY);
-    return new Set(raw ? JSON.parse(raw) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveCharacterId(id: string): void {
-  const ids = getSavedCharacterIds();
-  ids.add(id);
-  localStorage.setItem(LOCAL_CHAR_IDS_KEY, JSON.stringify([...ids]));
-}
-
-export function deleteCharacterLocally(id: string): void {
-  const ids = getSavedCharacterIds();
-  ids.delete(id);
-  localStorage.setItem(LOCAL_CHAR_IDS_KEY, JSON.stringify([...ids]));
-}
-
-export function getPaidCharacterIds(characters: Character[]): Set<string> {
-  try {
-    const raw = localStorage.getItem("yokbaji_paid_slot_assignments");
-    const assignments: Record<string, boolean> = raw ? JSON.parse(raw) : {};
-    const paidIds = new Set<string>();
-    let hasUpdates = false;
-    let freeUsed = 0;
-
-    const byCreation = [...characters].sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    );
-
-    for (const c of byCreation) {
-      if (assignments[c.id] === undefined) {
-        if (freeUsed < DEFAULT_SLOT_COUNT) {
-          assignments[c.id] = false;
-          freeUsed++;
-        } else {
-          assignments[c.id] = true;
-        }
-        hasUpdates = true;
-      } else {
-        if (!assignments[c.id]) freeUsed++;
-      }
-    }
-    if (hasUpdates) {
-      localStorage.setItem("yokbaji_paid_slot_assignments", JSON.stringify(assignments));
-    }
-    for (const c of characters) {
-      if (assignments[c.id]) paidIds.add(c.id);
-    }
-    return paidIds;
-  } catch {
-    return new Set();
-  }
-}
-
-export function assignSlotForCharacter(id: string, isPaid: boolean): void {
-  try {
-    const raw = localStorage.getItem("yokbaji_paid_slot_assignments");
-    const assignments: Record<string, boolean> = raw ? JSON.parse(raw) : {};
-    assignments[id] = isPaid;
-    localStorage.setItem("yokbaji_paid_slot_assignments", JSON.stringify(assignments));
-  } catch { /* ignore */ }
-}
+// Removed local character IDs and paid slot assignments
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapCharacter(raw: any): Character {
@@ -231,6 +186,7 @@ function mapCharacter(raw: any): Character {
     gender_type: raw.gender_type,
     image_path: raw.image_path,
     created_at: raw.created_at,
+    slotType: raw.slot_type,
   };
 }
 
@@ -238,16 +194,23 @@ export async function createCharacter(
   image: File,
   personalityType: string,
   genderType: string,
-  name: string
+  name: string,
+  slotType: "free" | "paid" | "default" = "free",
+  slotIndex: number = 0
 ): Promise<Character> {
   const form = new FormData();
   form.append("image", image);
   form.append("personality_type", personalityType);
   form.append("gender_type", genderType);
   form.append("name", name);
+  form.append("slot_type", slotType);
+  form.append("slot_index", String(slotIndex));
+
+  const userKey = getUserKey();
 
   const res = await fetch(`${API_BASE}/api/characters`, {
     method: "POST",
+    headers: { "x-user-key": userKey },
     body: form,
   });
   if (!res.ok) {
@@ -256,19 +219,12 @@ export async function createCharacter(
   }
   const raw = await res.json();
   const character = mapCharacter(raw);
-  saveCharacterId(character.id);
   return character;
 }
 
 export async function listCharacters(): Promise<Character[]> {
-  const savedIds = getSavedCharacterIds();
-  if (savedIds.size === 0) return [];
-  const res = await fetch(`${API_BASE}/api/characters`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  return (data.characters as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
-    .filter((raw) => savedIds.has(raw.character_id))
-    .map(mapCharacter);
+  const state = await fetchUserState();
+  return state.characters;
 }
 
 export async function getCharacter(id: string): Promise<Character> {

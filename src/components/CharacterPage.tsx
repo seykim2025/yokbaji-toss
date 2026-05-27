@@ -4,7 +4,7 @@ import {
   generateReaction, API_BASE, setLastUsed,
   getFreeCount, incrementFreeCount, isFreeExhausted, FREE_LIMIT,
   saveConversation, getConversations, deleteConversations,
-  deleteCharacterLocally, isDefaultCharacter,
+  spendConversationCoin
 } from "../api";
 import type { ConversationRecord } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
@@ -147,7 +147,7 @@ export default function CharacterPage({ character, tokens, onHome, onCharge, onD
   // Engine debug panel
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const canDelete = !isDefaultCharacter(character.id);
+  const canDelete = false; // Phase 1: character deletion disabled
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Imperatively call play() because autoPlay attribute is unreliable in iOS WebView
@@ -198,13 +198,18 @@ export default function CharacterPage({ character, tokens, onHome, onCharge, onD
     }
 
     try {
-      const result = await generateReaction(character.id, text, recentDialogueIds, recentBaseAssetCodes);
-      
-      // Deduct coin upon success if paid
       if (isPaid) {
-        onTokenSpent?.(1);
+        const spendRes = await spendConversationCoin();
+        if (!spendRes.success) {
+          setPageState("idle");
+          onCharge();
+          return;
+        }
+        onTokenSpent?.(1); // update UI
       }
 
+      const result = await generateReaction(character.id, text, recentDialogueIds, recentBaseAssetCodes);
+      
       setReaction(result);
       setPageState("done");
       setMessage("");
@@ -478,7 +483,6 @@ export default function CharacterPage({ character, tokens, onHome, onCharge, onD
               <button
                 style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: "#F04438", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: "pointer" }}
                 onClick={() => {
-                  deleteCharacterLocally(character.id);
                   deleteConversations(character.id);
                   setShowDeleteModal(false);
                   (onDeleted ?? onHome)();

@@ -8,6 +8,7 @@ export interface Character {
   gender_type: Gender;
   image_path: string;
   created_at: string;
+  slotType?: "free" | "paid" | "default";
 }
 
 export interface ReactionResult {

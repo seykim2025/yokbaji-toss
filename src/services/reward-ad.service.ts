@@ -1,5 +1,4 @@
-import { REWARDED_AD_COIN_AMOUNT } from "../config/ad.config";
-import { addCoins } from "./coin.service";
+import { API_BASE, getUserKey } from "../api";
 
 const DAILY_KEY = "yokbaji_rewarded_ad_daily";
 const REWARDED_IDS_KEY = "yokbaji_rewarded_event_ids";
@@ -71,19 +70,36 @@ export function canWatchRewardedAd(): { allowed: boolean; reason?: string } {
   return { allowed: true };
 }
 
-export function grantReward(eventId: string): RewardResult {
+export async function grantReward(eventId: string): Promise<RewardResult> {
   const daily = getDaily();
 
   if (hasEventId(eventId)) {
     return { ok: false, reason: "duplicate" };
   }
 
-  const newBalance = addCoins(REWARDED_AD_COIN_AMOUNT);
-  recordEventId(eventId);
+  try {
+    const userKey = getUserKey();
+    const res = await fetch(`${API_BASE}/api/users/me/coins/reward-ad`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-user-key": userKey },
+      body: JSON.stringify({ adEventId: eventId, rewardAmount: 10 })
+    });
+    
+    if (!res.ok) {
+      if (res.status === 409) return { ok: false, reason: "duplicate" };
+      return { ok: false, reason: "error" };
+    }
+    
+    const data = await res.json();
+    
+    recordEventId(eventId);
+    daily.count += 1;
+    daily.coins += 10;
+    saveDaily(daily);
 
-  daily.count += 1;
-  daily.coins += REWARDED_AD_COIN_AMOUNT;
-  saveDaily(daily);
-
-  return { ok: true, coinsAdded: REWARDED_AD_COIN_AMOUNT, newBalance };
+    return { ok: true, coinsAdded: 10, newBalance: data.coinBalance };
+  } catch (err) {
+    console.error(err);
+    return { ok: false, reason: "error" };
+  }
 }
