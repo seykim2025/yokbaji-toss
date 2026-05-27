@@ -61,7 +61,7 @@ async function seedDefaultCharacter(): Promise<void> {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<AppScreen | null>(null); // null = checking session
+  const [screen, _setScreen] = useState<AppScreen | null>(null); // null = checking session
   const [userName, setUserName] = useState<string | null>(null);
   const [character, setCharacter] = useState<Character | null>(null);
   const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
@@ -74,6 +74,31 @@ export default function App() {
   const [cachedCharacters, setCachedCharacters] = useState<Character[]>([]);
   const [isSeeding, setIsSeeding] = useState(true);
 
+  // Override setScreen to push state
+  const setScreen = useCallback((newScreen: AppScreen, replace = false) => {
+    if (replace) {
+      window.history.replaceState({ screen: newScreen }, "", `?screen=${newScreen}`);
+    } else {
+      window.history.pushState({ screen: newScreen }, "", `?screen=${newScreen}`);
+    }
+    _setScreen(newScreen);
+  }, []);
+
+  // Listen for popstate
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const state = e.state;
+      if (state && state.screen) {
+        _setScreen(state.screen);
+      } else {
+        // Fallback to home
+        _setScreen("home");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   // On mount: check session, then route to login or home
   useEffect(() => {
     checkTossSession().then((result) => {
@@ -81,11 +106,19 @@ export default function App() {
         setUserName(result.user.name ?? null);
         console.log("[yokbaji] toss userKey:", result.user.userKey);
       }
-      setScreen(result.ok ? "home" : "login");
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialScreen = urlParams.get("screen") as AppScreen | null;
+      
+      if (result.ok) {
+        setScreen(initialScreen ?? "home", true);
+      } else {
+        setScreen("login", true);
+      }
     }).catch(() => {
-      setScreen("login");
+      setScreen("login", true);
     });
-  }, []);
+  }, [setScreen]);
 
   // Initialize Toss SDK: user key + screen awake + ads
   useEffect(() => {
@@ -117,29 +150,29 @@ export default function App() {
 
   const handleLoginSuccess = useCallback((user: TossUser) => {
     setUserName(user.name ?? null);
-    setScreen("home");
-  }, []);
+    setScreen("home", true); // Replace login with home
+  }, [setScreen]);
 
   const goHome = useCallback(() => {
     console.log("[yokbaji] return-to-home, cached chars:", cachedCharacters.length);
     setScreen("home");
     setCharacter(null);
-  }, [cachedCharacters.length]);
+  }, [cachedCharacters.length, setScreen]);
 
   const goToken = useCallback(() => {
     setPrevScreen(screen ?? "home");
     setScreen("token");
-  }, [screen]);
+  }, [screen, setScreen]);
 
   const handleSelectCharacter = useCallback((c: Character) => {
     setCharacter(c);
     setScreen("character");
-  }, []);
+  }, [setScreen]);
 
   const handleCreated = useCallback((c: Character) => {
     setCharacter(c);
-    setScreen("character");
-  }, []);
+    setScreen("character", true); // Replace create with character
+  }, [setScreen]);
 
   const handleAddSlotRequest = useCallback(() => {
     setShowSlotConfirm(true);
@@ -212,7 +245,13 @@ export default function App() {
       case "token":
         return (
           <TokenPage
-            onBack={() => setScreen(prevScreen)}
+            onBack={() => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                setScreen(prevScreen);
+              }
+            }}
             onCoinsAdded={handleCoinsAdded}
           />
         );

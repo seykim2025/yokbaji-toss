@@ -21,6 +21,8 @@ export default defineConfig({
   ],
   webViewProps: {
     type: "partner",
+    // @ts-expect-error
+    navigationBarHidden: true,
     bounces: false,
     pullToRefreshEnabled: false,
     overScrollMode: "never",

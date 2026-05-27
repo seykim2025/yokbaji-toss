@@ -127,7 +127,7 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
       <header className={styles.header}>
         <div className={styles.titleArea}>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>욕바지</h1>
+            <img src="/favicon.svg" alt="욕바지" className={styles.logo} />
             <span className={styles.versionBadge}>{version}</span>
           </div>
           <p className={styles.subtitle}>
