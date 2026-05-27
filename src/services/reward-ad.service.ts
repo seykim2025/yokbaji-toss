@@ -1,8 +1,4 @@
-import {
-  REWARDED_AD_COIN_AMOUNT,
-  DAILY_REWARDED_AD_LIMIT,
-  DAILY_REWARDED_COIN_LIMIT,
-} from "../config/ad.config";
+import { REWARDED_AD_COIN_AMOUNT } from "../config/ad.config";
 import { addCoins } from "./coin.service";
 
 const DAILY_KEY = "yokbaji_rewarded_ad_daily";
@@ -70,22 +66,13 @@ export type RewardResult =
   | { ok: false; reason: "daily_limit" | "duplicate" | "error" };
 
 export function canWatchRewardedAd(): { allowed: boolean; reason?: string } {
-  const daily = getDaily();
-  if (daily.count >= DAILY_REWARDED_AD_LIMIT) {
-    return {
-      allowed: false,
-      reason: `오늘 받을 수 있는 광고 보상 코인을 모두 받았어요. (${daily.coins}/${DAILY_REWARDED_COIN_LIMIT} 코인)`,
-    };
-  }
+  // TODO: Add backend-configurable limit or soft-warning if abuse occurs.
+  // For now, no hard daily limit is enforced.
   return { allowed: true };
 }
 
 export function grantReward(eventId: string): RewardResult {
   const daily = getDaily();
-
-  if (daily.count >= DAILY_REWARDED_AD_LIMIT || daily.coins >= DAILY_REWARDED_COIN_LIMIT) {
-    return { ok: false, reason: "daily_limit" };
-  }
 
   if (hasEventId(eventId)) {
     return { ok: false, reason: "duplicate" };
