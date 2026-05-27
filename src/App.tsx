@@ -19,7 +19,7 @@ import "./index.css";
 const _t0 = performance.now();
 console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 
-export const APP_VERSION = "v0.0.8";
+export const APP_VERSION = "v0.0.9";
 
 // v0.0.8 Reset Logic
 const RESET_V8_KEY = "yokbaji_reset_v8_2";

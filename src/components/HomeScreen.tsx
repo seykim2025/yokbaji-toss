@@ -114,8 +114,12 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const emptySlotCount = Math.max(0, totalSlots - characters.length);
   const paidCharIds = getPaidCharacterIds(characters);
+  const freeUsed = characters.filter((c) => !paidCharIds.has(c.id)).length;
+  const paidUsed = characters.filter((c) => paidCharIds.has(c.id)).length;
+
+  const freeEmptyCount = Math.max(0, DEFAULT_SLOT_COUNT - freeUsed);
+  const paidEmptyCount = Math.max(0, (totalSlots - DEFAULT_SLOT_COUNT) - paidUsed);
 
   return (
     <div className={styles.container}>
@@ -194,21 +198,28 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
               );
             })}
 
-            {/* Empty slot cards */}
-            {Array.from({ length: emptySlotCount }).map((_, i) => {
-              const slotIndex = characters.length + i;
-              const isPaid = slotIndex >= DEFAULT_SLOT_COUNT;
-              return (
-                <button
-                  key={`empty-${i}`}
-                  className={`${styles.emptySlot} ${isPaid ? styles.paidSlot : ""}`}
-                  onClick={() => onCreateNew(isPaid)}
-                >
-                  <span className={styles.emptyPlus}>+</span>
-                  {isPaid && <span className={styles.paidBadge}>코인</span>}
-                </button>
-              );
-            })}
+            {/* Free Empty slot cards */}
+            {Array.from({ length: freeEmptyCount }).map((_, i) => (
+              <button
+                key={`empty-free-${i}`}
+                className={styles.emptySlot}
+                onClick={() => onCreateNew(false)}
+              >
+                <span className={styles.emptyPlus}>+</span>
+              </button>
+            ))}
+
+            {/* Paid Empty slot cards */}
+            {Array.from({ length: paidEmptyCount }).map((_, i) => (
+              <button
+                key={`empty-paid-${i}`}
+                className={`${styles.emptySlot} ${styles.paidSlot}`}
+                onClick={() => onCreateNew(true)}
+              >
+                <span className={styles.emptyPlus}>+</span>
+                <span className={styles.paidBadge}>코인</span>
+              </button>
+            ))}
 
             {/* Add slot button (always last) */}
             <button className={styles.addSlotCard} onClick={onAddSlot}>

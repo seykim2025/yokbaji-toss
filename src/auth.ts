@@ -48,6 +48,17 @@ function parseAuthResponse(status: number, data: Record<string, unknown>): Sessi
 
 export async function checkTossSession(): Promise<SessionResult> {
   try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code") || urlParams.get("authorizationCode");
+    const referrer = urlParams.get("referrer") || "APP";
+
+    if (code) {
+      // Consume the code from URL to prevent reuse on refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
+      const result = await loginWithToss(code, referrer);
+      if (result.ok) return result;
+    }
+
     const stored = localStorage.getItem(USER_STORAGE_KEY);
     if (!stored) return { ok: false, errorCode: "SESSION_INVALID" };
     const user = JSON.parse(stored) as TossUser;

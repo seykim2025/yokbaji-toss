@@ -144,7 +144,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
   const [selectedConv, setSelectedConv] = useState<ConversationRecord | null>(null);
 
   // Engine debug panel
-  const [showDebug, setShowDebug] = useState(false);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const canDelete = !isDefaultCharacter(character.id);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -239,8 +239,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
   // Paid conversation count estimate (1 token = 1 conversation)
   const paidCountAvailable = tokens;
 
-  // Current reaction data for debug (either live or selected history)
-  const debugReaction = reaction;
+
 
   return (
     <div className={styles.container}>
@@ -249,13 +248,15 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
         <button className={styles.backBtn} onClick={onBack}>←</button>
         <span className={styles.headerName}>{displayName}</span>
         <div className={styles.headerRight}>
-          <button
-            className={styles.historyBtn}
-            onClick={() => setShowHistory(true)}
-            title="지난 대화 보기"
-          >
-            📋
-          </button>
+          {conversations.length > 0 && (
+            <button
+              className={styles.historyBtn}
+              onClick={() => setShowHistory(true)}
+              title="지난 대화 보기"
+            >
+              📋
+            </button>
+          )}
           <div className={styles.tokenDisplay}>
             <span className={styles.tokenIcon}>🪙</span>
             <span className={styles.tokenCount}>{tokens.toLocaleString()}</span>
@@ -274,35 +275,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
         </div>
       </header>
 
-      {/* Engine debug panel */}
-      {debugReaction && (
-        <div className={styles.debugPanel}>
-          <button
-            className={styles.debugToggle}
-            onClick={() => setShowDebug((v) => !v)}
-          >
-            🛠 엔진 피드백 {showDebug ? "▲" : "▼"}
-          </button>
-          {showDebug && (
-            <div className={styles.debugContent}>
-              <div className={styles.debugRow}>
-                <span className={styles.debugLabel}>요청</span>
-                <span className={styles.debugValue}>{debugReaction.user_message}</span>
-              </div>
-              <div className={styles.debugRow}>
-                <span className={styles.debugLabel}>응답</span>
-                <span className={styles.debugValue}>
-                  {Array.isArray(debugReaction.dialogue) ? debugReaction.dialogue.join(" ") : debugReaction.dialogue}
-                </span>
-              </div>
-              <div className={styles.debugRow}>
-                <span className={styles.debugLabel}>캐시</span>
-                <span className={styles.debugValue}>{debugReaction.cached ? "hit" : "miss"}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+
 
       {/* Body */}
       <div className={styles.body}>
