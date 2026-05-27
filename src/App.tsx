@@ -8,7 +8,7 @@ import ExitModal from "./components/ExitModal";
 import LoginScreen from "./components/LoginScreen";
 import CoinShortageModal from "./components/CoinShortageModal";
 import ConfirmModal from "./components/ConfirmModal";
-import { createCharacter, fetchUserState, purchaseSlot, SLOT_ADD_COST } from "./api";
+import { purchaseSlot, SLOT_ADD_COST } from "./api";
 // Removed local coin.service imports
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
@@ -29,7 +29,8 @@ export default function App() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
   const [tokens, setTokens] = useState(0);
-  const [totalSlots, setTotalSlots] = useState(4);
+  const [freeSlots, setFreeSlots] = useState(2);
+  const [paidSlots, setPaidSlots] = useState(0);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCoinShortage, setShowCoinShortage] = useState(false);
   const [showSlotConfirm, setShowSlotConfirm] = useState(false);
@@ -98,7 +99,8 @@ export default function App() {
     try {
       const state = await import("./api").then(m => m.fetchUserState());
       setTokens(state.coinBalance);
-      setTotalSlots(state.freeSlotCount + state.paidSlotCount);
+      setFreeSlots(state.freeSlotCount);
+      setPaidSlots(state.paidSlotCount);
       // Combine user chars + default chars
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const allChars = [...(state.defaultCharacters as any[]).map((c: any) => ({
@@ -176,7 +178,7 @@ export default function App() {
     try {
       const res = await purchaseSlot();
       setTokens(res.coinBalance);
-      setTotalSlots(2 + res.paidSlotCount); // Assume 2 free slots
+      setPaidSlots(res.paidSlotCount);
     } catch {
       // Handle error
     }
@@ -198,7 +200,8 @@ export default function App() {
         return (
           <HomeScreen
             tokens={tokens}
-            totalSlots={totalSlots}
+            freeSlots={freeSlots}
+            paidSlots={paidSlots}
             version={APP_VERSION}
             userName={userName}
             cachedCharacters={cachedCharacters}

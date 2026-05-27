@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT } from "../api";
+import { listCharacters, API_BASE, getLastUsed } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
@@ -22,7 +22,8 @@ function SkeletonGrid() {
 
 interface Props {
   tokens: number;
-  totalSlots: number;
+  freeSlots: number;
+  paidSlots: number;
   version: string;
   userName?: string | null;
   isCreating?: boolean;
@@ -56,7 +57,7 @@ function getImageUrl(path: string): string {
 
 
 
-export default function HomeScreen({ tokens, totalSlots, version, userName, cachedCharacters = [], onCharactersLoaded, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
+export default function HomeScreen({ tokens, freeSlots, paidSlots, version, userName, cachedCharacters = [], onCharactersLoaded, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const hasCache = cachedCharacters.length > 0;
   const [characters, setCharacters] = useState<Character[]>(cachedCharacters);
   const [loading, setLoading] = useState(!hasCache);
@@ -114,11 +115,11 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const freeUsed = characters.filter((c) => c.slotType !== "paid").length;
+  const freeUsed = characters.filter((c) => c.slotType === "free").length;
   const paidUsed = characters.filter((c) => c.slotType === "paid").length;
 
-  const freeEmptyCount = Math.max(0, DEFAULT_SLOT_COUNT - freeUsed);
-  const paidEmptyCount = Math.max(0, (totalSlots - DEFAULT_SLOT_COUNT) - paidUsed);
+  const freeEmptyCount = Math.max(0, freeSlots - freeUsed);
+  const paidEmptyCount = Math.max(0, paidSlots - paidUsed);
 
   return (
     <div className={styles.container}>
