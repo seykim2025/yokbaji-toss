@@ -127,7 +127,6 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
       <header className={styles.header}>
         <div className={styles.titleArea}>
           <div className={styles.titleRow}>
-            <img src="/아이콘1_600.png" alt="욕바지" className={styles.logo} />
             <span className={styles.versionBadge}>{version}</span>
           </div>
           <p className={styles.subtitle}>

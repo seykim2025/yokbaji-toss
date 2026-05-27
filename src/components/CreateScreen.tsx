@@ -275,9 +275,6 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
             )}
           </div>
         )}
-      </div>
-
-      <div className={styles.footer}>
         <div className={styles.submitArea}>
           <button
             className={`${styles.submitBtn} ${canSubmit ? styles.submitActive : ""}`}
@@ -291,6 +288,9 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
             )}
           </button>
         </div>
+      </div>
+
+      <div className={styles.footer}>
         <MainFooterBannerAd />
       </div>
 

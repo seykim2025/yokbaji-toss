@@ -21,9 +21,9 @@ console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 
 export const APP_VERSION = "v0.1.0";
 
-// v0.0.8 Reset Logic
-const RESET_V8_KEY = "yokbaji_reset_v8_2";
-if (!localStorage.getItem(RESET_V8_KEY)) {
+// v0.1.0 QA Reset Logic
+const RESET_V9_KEY = "yokbaji_reset_v9_1";
+if (!localStorage.getItem(RESET_V9_KEY)) {
   localStorage.removeItem("yokbaji_character_ids");
   localStorage.removeItem("yokbaji_paid_slot_assignments");
   localStorage.removeItem("yokbaji_slot_count");
@@ -31,12 +31,12 @@ if (!localStorage.getItem(RESET_V8_KEY)) {
   localStorage.removeItem("yokbaji_conversations");
   localStorage.removeItem("yokbaji_last_used");
   localStorage.removeItem("yokbaji_free_count");
-  localStorage.setItem("yokbaji_coin_balance", "5");
-  localStorage.setItem(RESET_V8_KEY, "1");
+  localStorage.setItem("yokbaji_coin_balance", "10");
+  localStorage.setItem(RESET_V9_KEY, "1");
 }
 
 async function seedDefaultCharacter(): Promise<void> {
-  if (localStorage.getItem("yokbaji_seed_v8_2")) return;
+  if (localStorage.getItem("yokbaji_seed_v9_1")) return;
   try {
     const res1 = await fetch("/girl.jpeg");
     if (res1.ok) {
@@ -54,7 +54,7 @@ async function seedDefaultCharacter(): Promise<void> {
       markAsDefault(c2.id);
     }
 
-    localStorage.setItem("yokbaji_seed_v8_2", "1");
+    localStorage.setItem("yokbaji_seed_v9_1", "1");
   } catch (err) {
     console.error("[yokbaji] seed error:", err);
   }
