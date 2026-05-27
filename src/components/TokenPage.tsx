@@ -10,7 +10,7 @@ export default function TokenPage({ onBack, onCoinsAdded }: Props) {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>←</button>
+        <div className={styles.backBtn} style={{ visibility: "hidden", pointerEvents: "none" }} />
         <h2 className={styles.title}>코인 충전</h2>
         <div className={styles.spacer} />
       </header>

@@ -21,7 +21,7 @@ export default defineConfig({
   ],
   webViewProps: {
     type: "partner",
-    // @ts-expect-error
+    // @ts-expect-error - undocumented Toss navigationBarHidden prop
     navigationBarHidden: true,
     bounces: false,
     pullToRefreshEnabled: false,

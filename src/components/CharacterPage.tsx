@@ -120,7 +120,7 @@ function formatTimestamp(iso: string): string {
   return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
 }
 
-export default function CharacterPage({ character, tokens, onBack, onHome, onCharge, onDeleted }: Props) {
+export default function CharacterPage({ character, tokens, onHome, onCharge, onDeleted }: Props) {
   const [message, setMessage] = useState("");
   const [pageState, setPageState] = useState<PageState>("idle");
   const [reaction, setReaction] = useState<ReactionResult | null>(null);
@@ -245,7 +245,7 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>←</button>
+        <div className={styles.backBtn} style={{ visibility: "hidden", pointerEvents: "none" }} />
         <span className={styles.headerName}>{displayName}</span>
         <div className={styles.headerRight}>
           {conversations.length > 0 && (

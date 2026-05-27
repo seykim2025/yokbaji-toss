@@ -40,7 +40,7 @@ async function dataUriToFile(dataUri: string, filename: string): Promise<File> {
   return new File([blob], filename, { type });
 }
 
-export default function CreateScreen({ tokens, isPaidSlot, onBack, onCreated, onCharge, onHome }: Props) {
+export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, onHome }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -175,7 +175,7 @@ export default function CreateScreen({ tokens, isPaidSlot, onBack, onCreated, on
       )}
 
       <header className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack} disabled={loading}>←</button>
+        <div className={styles.backBtn} style={{ visibility: "hidden", pointerEvents: "none" }} />
         <h2 className={styles.title}>캐릭터 생성</h2>
         <div className={styles.headerRight}>
           <div className={styles.tokenDisplay}>
