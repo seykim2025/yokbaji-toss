@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
 import type { Personality, Gender, Character } from "../types";
-import { createCharacter } from "../api";
+import { createCharacter, assignSlotForCharacter } from "../api";
 import { isTossWebView } from "../toss";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./CreateScreen.module.css";
 
 interface Props {
   tokens: number;
+  isPaidSlot: boolean;
   onBack: () => void;
   onCreated: (character: Character) => void;
   onCharge: () => void;
@@ -39,7 +40,7 @@ async function dataUriToFile(dataUri: string, filename: string): Promise<File> {
   return new File([blob], filename, { type });
 }
 
-export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHome }: Props) {
+export default function CreateScreen({ tokens, isPaidSlot, onBack, onCreated, onCharge, onHome }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -131,6 +132,7 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
       }
       console.log("[CreateScreen] creating character:", uploadFile.name, uploadFile.size, uploadFile.type);
       const character = await createCharacter(uploadFile, personality, gender, name);
+      assignSlotForCharacter(character.id, isPaidSlot);
       onCreated(character);
     } catch (err: unknown) {
       const rawMsg = err instanceof Error ? err.message : "캐릭터 생성 실패";

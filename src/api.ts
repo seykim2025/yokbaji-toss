@@ -27,7 +27,7 @@ const LOCAL_SLOT_COUNT_KEY = "yokbaji_slot_count";
 const LOCAL_CONVERSATIONS_KEY = "yokbaji_conversations";
 const LOCAL_DEFAULT_IDS_KEY = "yokbaji_default_ids";
 export const FREE_LIMIT = 5;
-export const DEFAULT_SLOT_COUNT = 3;
+export const DEFAULT_SLOT_COUNT = 5;
 export const SLOT_ADD_COST = 10;
 
 // ── Default character protection ─────────────────────────────────────────────
@@ -211,6 +211,15 @@ export function getPaidCharacterIds(characters: Character[]): Set<string> {
   } catch {
     return new Set();
   }
+}
+
+export function assignSlotForCharacter(id: string, isPaid: boolean): void {
+  try {
+    const raw = localStorage.getItem("yokbaji_paid_slot_assignments");
+    const assignments: Record<string, boolean> = raw ? JSON.parse(raw) : {};
+    assignments[id] = isPaid;
+    localStorage.setItem("yokbaji_paid_slot_assignments", JSON.stringify(assignments));
+  } catch { /* ignore */ }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

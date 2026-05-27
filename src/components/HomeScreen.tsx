@@ -28,7 +28,7 @@ interface Props {
   isCreating?: boolean;
   cachedCharacters?: Character[];
   onCharactersLoaded?: (characters: Character[]) => void;
-  onCreateNew: () => void;
+  onCreateNew: (isPaid: boolean) => void;
   onSelectCharacter: (character: Character) => void;
   onAddSlot: () => void;
   onCharge: () => void;
@@ -202,7 +202,7 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
                 <button
                   key={`empty-${i}`}
                   className={`${styles.emptySlot} ${isPaid ? styles.paidSlot : ""}`}
-                  onClick={onCreateNew}
+                  onClick={() => onCreateNew(isPaid)}
                 >
                   <span className={styles.emptyPlus}>+</span>
                   {isPaid && <span className={styles.paidBadge}>코인</span>}

@@ -8,7 +8,7 @@ import ExitModal from "./components/ExitModal";
 import LoginScreen from "./components/LoginScreen";
 import CoinShortageModal from "./components/CoinShortageModal";
 import ConfirmModal from "./components/ConfirmModal";
-import { getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
+import { getSlotCount, incrementSlotCount, SLOT_ADD_COST, createCharacter, markAsDefault } from "./api";
 import { getCoinBalance, spendCoins } from "./services/coin.service";
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
@@ -22,13 +22,42 @@ console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 export const APP_VERSION = "v0.0.8";
 
 // v0.0.8 Reset Logic
-const RESET_V8_KEY = "yokbaji_reset_v8";
+const RESET_V8_KEY = "yokbaji_reset_v8_2";
 if (!localStorage.getItem(RESET_V8_KEY)) {
   localStorage.removeItem("yokbaji_character_ids");
   localStorage.removeItem("yokbaji_paid_slot_assignments");
   localStorage.removeItem("yokbaji_slot_count");
+  localStorage.removeItem("yokbaji_default_ids");
+  localStorage.removeItem("yokbaji_conversations");
+  localStorage.removeItem("yokbaji_last_used");
+  localStorage.removeItem("yokbaji_free_count");
   localStorage.setItem("yokbaji_coin_balance", "5");
   localStorage.setItem(RESET_V8_KEY, "1");
+}
+
+async function seedDefaultCharacter(): Promise<void> {
+  if (localStorage.getItem("yokbaji_seed_v8_2")) return;
+  try {
+    const res1 = await fetch("/girl.jpeg");
+    if (res1.ok) {
+      const blob1 = await res1.blob();
+      const img1 = new File([blob1], "girl.jpeg", { type: "image/jpeg" });
+      const c1 = await createCharacter(img1, "WEAK", "F", "온순이");
+      markAsDefault(c1.id);
+    }
+
+    const res2 = await fetch("/man.jpeg");
+    if (res2.ok) {
+      const blob2 = await res2.blob();
+      const img2 = new File([blob2], "man.jpeg", { type: "image/jpeg" });
+      const c2 = await createCharacter(img2, "ANGRY", "M", "버럭이");
+      markAsDefault(c2.id);
+    }
+
+    localStorage.setItem("yokbaji_seed_v8_2", "1");
+  } catch (err) {
+    console.error("[yokbaji] seed error:", err);
+  }
 }
 
 export default function App() {
@@ -41,7 +70,9 @@ export default function App() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCoinShortage, setShowCoinShortage] = useState(false);
   const [showSlotConfirm, setShowSlotConfirm] = useState(false);
+  const [creatingInPaidSlot, setCreatingInPaidSlot] = useState(false);
   const [cachedCharacters, setCachedCharacters] = useState<Character[]>([]);
+  const [isSeeding, setIsSeeding] = useState(true);
 
   // On mount: check session, then route to login or home
   useEffect(() => {
@@ -64,6 +95,10 @@ export default function App() {
     setScreenAwake(true);
     initAds();
     return () => { setScreenAwake(false); };
+  }, []);
+
+  useEffect(() => {
+    seedDefaultCharacter().finally(() => setIsSeeding(false));
   }, []);
 
 
@@ -127,8 +162,8 @@ export default function App() {
     setTokens((t) => t + amount);
   }, []);
 
-  if (screen === null) {
-    return null; // splash while checking session
+  if (screen === null || isSeeding) {
+    return null; // splash while checking session or seeding
   }
 
   const content = (() => {
@@ -144,7 +179,10 @@ export default function App() {
             userName={userName}
             cachedCharacters={cachedCharacters}
             onCharactersLoaded={setCachedCharacters}
-            onCreateNew={() => setScreen("create")}
+            onCreateNew={(isPaid) => {
+              setCreatingInPaidSlot(isPaid);
+              setScreen("create");
+            }}
             onSelectCharacter={handleSelectCharacter}
             onAddSlot={handleAddSlotRequest}
             onCharge={goToken}
@@ -154,6 +192,7 @@ export default function App() {
         return (
           <CreateScreen
             tokens={tokens}
+            isPaidSlot={creatingInPaidSlot}
             onBack={goHome}
             onCreated={handleCreated}
             onCharge={goToken}
