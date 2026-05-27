@@ -49,8 +49,13 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [faceError, setFaceError] = useState(false);
+  const [showPickerModal, setShowPickerModal] = useState(false);
 
-  async function handleTossPhotoPickOrFallback() {
+  function handleTossPhotoPickOrFallback() {
+    setShowPickerModal(true);
+  }
+
+  async function handleAlbumSelect() {
     if (isTossWebView()) {
       try {
         const sdk = await import("@apps-in-toss/web-framework");
@@ -58,19 +63,30 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
           const photos = await sdk.fetchAlbumPhotos({ maxCount: 1, maxWidth: 1024, base64: true });
           if (photos.length > 0) {
             const photo = photos[0];
-            // dataUri is base64 string when base64:true
             const file = await base64ToFile(photo.dataUri, "photo.jpg");
             setImage(file);
             setPreview(URL.createObjectURL(file));
+            setShowPickerModal(false);
             return;
           }
         }
       } catch (err) {
         console.error("[CreateScreen] fetchAlbumPhotos failed:", err);
-        // fall through to standard file input
       }
     }
-    fileRef.current?.click();
+    if (fileRef.current) {
+      fileRef.current.removeAttribute("capture");
+      fileRef.current.click();
+    }
+    setShowPickerModal(false);
+  }
+
+  function handleCameraSelect() {
+    if (fileRef.current) {
+      fileRef.current.setAttribute("capture", "user");
+      fileRef.current.click();
+    }
+    setShowPickerModal(false);
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -259,7 +275,6 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
         )}
       </div>
 
-      {/* Fixed footer: create button + ad banner */}
       <div className={styles.footer}>
         <div className={styles.submitArea}>
           <button
@@ -276,6 +291,40 @@ export default function CreateScreen({ tokens, onBack, onCreated, onCharge, onHo
         </div>
         <MainFooterBannerAd />
       </div>
+
+      {showPickerModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end", zIndex: 9999 }}
+          onClick={() => setShowPickerModal(false)}
+        >
+          <div
+            style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: "24px 24px 40px", width: "100%", textAlign: "center", paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#191f28", marginBottom: 20, marginTop: 0 }}>사진 업로드</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <button
+                style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "#f2f3f4", color: "#191f28", fontSize: 16, fontWeight: 600, border: "none" }}
+                onClick={handleCameraSelect}
+              >
+                카메라로 촬영
+              </button>
+              <button
+                style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "#f2f3f4", color: "#191f28", fontSize: 16, fontWeight: 600, border: "none" }}
+                onClick={handleAlbumSelect}
+              >
+                앨범에서 선택
+              </button>
+              <button
+                style={{ width: "100%", padding: "14px 0", marginTop: 8, background: "transparent", color: "#6b7280", fontSize: 15, fontWeight: 500, border: "none" }}
+                onClick={() => setShowPickerModal(false)}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

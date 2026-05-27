@@ -7,7 +7,9 @@ import TokenPage from "./components/TokenPage";
 import ExitModal from "./components/ExitModal";
 import LoginScreen from "./components/LoginScreen";
 import CoinShortageModal from "./components/CoinShortageModal";
-import { createCharacter, getSlotCount, incrementSlotCount, SLOT_ADD_COST, markAsDefault } from "./api";
+import ConfirmModal from "./components/ConfirmModal";
+import { getSlotCount, incrementSlotCount, SLOT_ADD_COST } from "./api";
+import { getCoinBalance, spendCoins } from "./services/coin.service";
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
 import { initAds } from "./lib/tossAds";
@@ -17,42 +19,16 @@ import "./index.css";
 const _t0 = performance.now();
 console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 
-export const APP_VERSION = "v0.0.6";
-const INITIAL_TOKENS = 100;
-const DEFAULTS_V3_KEY = "yokbaji_defaults_v3_seeded";
+export const APP_VERSION = "v0.0.8";
 
-async function seedDefaultCharacters(): Promise<void> {
-  if (localStorage.getItem(DEFAULTS_V3_KEY)) return;
-  try {
-    // Clear any stale previous-version seed markers and character IDs
-    localStorage.removeItem("yokbaji_character_ids");
-    localStorage.removeItem("yokbaji_defaults_seeded");
-    localStorage.removeItem("yokbaji_defaults_v2_seeded");
-
-    const [blob1, blob2] = await Promise.all([
-      fetch("/girl.jpeg").then((r) => {
-        if (!r.ok) throw new Error("girl.jpeg not found");
-        return r.blob();
-      }),
-      fetch("/man.jpeg").then((r) => {
-        if (!r.ok) throw new Error("man.jpeg not found");
-        return r.blob();
-      }),
-    ]);
-    const img1 = new File([blob1], "girl.jpeg", { type: "image/jpeg" });
-    const img2 = new File([blob2], "man.jpeg", { type: "image/jpeg" });
-
-    const [c1, c2] = await Promise.all([
-      createCharacter(img1, "WEAK", "F", "온순이"),
-      createCharacter(img2, "ANGRY", "M", "버럭이"),
-    ]);
-    markAsDefault(c1.id);
-    markAsDefault(c2.id);
-    localStorage.setItem(DEFAULTS_V3_KEY, "1");
-  } catch (err) {
-    console.error("[yokbaji] default seed failed:", err);
-    // will retry on next load
-  }
+// v0.0.8 Reset Logic
+const RESET_V8_KEY = "yokbaji_reset_v8";
+if (!localStorage.getItem(RESET_V8_KEY)) {
+  localStorage.removeItem("yokbaji_character_ids");
+  localStorage.removeItem("yokbaji_paid_slot_assignments");
+  localStorage.removeItem("yokbaji_slot_count");
+  localStorage.setItem("yokbaji_coin_balance", "5");
+  localStorage.setItem(RESET_V8_KEY, "1");
 }
 
 export default function App() {
@@ -60,10 +36,11 @@ export default function App() {
   const [userName, setUserName] = useState<string | null>(null);
   const [character, setCharacter] = useState<Character | null>(null);
   const [prevScreen, setPrevScreen] = useState<AppScreen>("home");
-  const [tokens, setTokens] = useState(INITIAL_TOKENS);
+  const [tokens, setTokens] = useState(() => getCoinBalance());
   const [totalSlots, setTotalSlots] = useState(() => getSlotCount());
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCoinShortage, setShowCoinShortage] = useState(false);
+  const [showSlotConfirm, setShowSlotConfirm] = useState(false);
   const [cachedCharacters, setCachedCharacters] = useState<Character[]>([]);
 
   // On mount: check session, then route to login or home
@@ -89,7 +66,7 @@ export default function App() {
     return () => { setScreenAwake(false); };
   }, []);
 
-  useEffect(() => { seedDefaultCharacters(); }, []);
+
 
   // Listen for Toss WebView close (X button) — show exit confirmation
   useEffect(() => {
@@ -129,14 +106,21 @@ export default function App() {
     setScreen("character");
   }, []);
 
-  const handleAddSlot = useCallback(() => {
+  const handleAddSlotRequest = useCallback(() => {
+    setShowSlotConfirm(true);
+  }, []);
+
+  const handleAddSlotConfirm = useCallback(() => {
+    setShowSlotConfirm(false);
     if (tokens < SLOT_ADD_COST) {
       setShowCoinShortage(true);
       return;
     }
-    setTokens((t) => t - SLOT_ADD_COST);
-    const next = incrementSlotCount();
-    setTotalSlots(next);
+    if (spendCoins(SLOT_ADD_COST)) {
+      setTokens(getCoinBalance());
+      const next = incrementSlotCount();
+      setTotalSlots(next);
+    }
   }, [tokens]);
 
   const handleCoinsAdded = useCallback((amount: number) => {
@@ -162,7 +146,7 @@ export default function App() {
             onCharactersLoaded={setCachedCharacters}
             onCreateNew={() => setScreen("create")}
             onSelectCharacter={handleSelectCharacter}
-            onAddSlot={handleAddSlot}
+            onAddSlot={handleAddSlotRequest}
             onCharge={goToken}
           />
         );
@@ -204,6 +188,13 @@ export default function App() {
         open={showCoinShortage}
         onClose={() => setShowCoinShortage(false)}
         onCoinsAdded={handleCoinsAdded}
+      />
+      <ConfirmModal
+        open={showSlotConfirm}
+        title="슬롯 추가"
+        message="10 코인을 사용하여 새 캐릭터 슬롯을 추가하시겠습니까?"
+        onConfirm={handleAddSlotConfirm}
+        onCancel={() => setShowSlotConfirm(false)}
       />
     </>
   );

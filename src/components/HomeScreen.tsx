@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Character } from "../types";
-import { listCharacters, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT } from "../api";
+import { listCharacters, API_BASE, getLastUsed, DEFAULT_SLOT_COUNT, getPaidCharacterIds } from "../api";
 import MainFooterBannerAd from "./MainFooterBannerAd";
 import styles from "./HomeScreen.module.css";
 
@@ -54,14 +54,7 @@ function getImageUrl(path: string): string {
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-function getPaidCharacterIds(characters: Character[]): Set<string> {
-  const byCreation = [...characters].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
-  const paidIds = new Set<string>();
-  byCreation.slice(DEFAULT_SLOT_COUNT).forEach((c) => paidIds.add(c.id));
-  return paidIds;
-}
+
 
 export default function HomeScreen({ tokens, totalSlots, version, userName, cachedCharacters = [], onCharactersLoaded, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
   const hasCache = cachedCharacters.length > 0;
@@ -169,7 +162,7 @@ export default function HomeScreen({ tokens, totalSlots, version, userName, cach
                   onClick={() => onSelectCharacter(c)}
                 >
                   <div className={styles.cardImageWrap}>
-                    {isPaid && <span className={styles.charPaidBadge}>🪙</span>}
+                    {isPaid && <span className={styles.charPaidBadge}>코인</span>}
                     {c.image_path ? (
                       <img
                         src={getImageUrl(c.image_path)}

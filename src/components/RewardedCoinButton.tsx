@@ -10,7 +10,7 @@ interface Props {
 
 type State = "idle" | "loading" | "ready" | "showing" | "done" | "error";
 
-export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보고 코인 받기" }: Props) {
+export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보고 15코인 받기" }: Props) {
   const [state, setState] = useState<State>("idle");
   const [msg, setMsg] = useState("");
 
@@ -26,10 +26,11 @@ export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보�
     setMsg("");
 
     let loaded = false;
+    console.log("[reward-ad] ad started");
 
     const unregisterLoad = await loadRewardedAd(
       REWARDED_AD_GROUP_ID,
-      (_type) => {
+      () => {
         // onEvent only fires with type: 'loaded'
         loaded = true;
         setState("ready");
@@ -53,8 +54,10 @@ export default function RewardedCoinButton({ onCoinsAdded, label = "광고 보�
         REWARDED_AD_GROUP_ID,
         () => {
           // userEarnedReward — grant coin
+          console.log("[reward-ad] ad completed");
           const result = grantReward(eventId);
           if (result.ok) {
+            console.log(`[reward-ad] reward amount = ${result.coinsAdded}`);
             setState("done");
             setMsg(`코인 ${result.coinsAdded}개가 지급됐어요!`);
             onCoinsAdded(result.coinsAdded);

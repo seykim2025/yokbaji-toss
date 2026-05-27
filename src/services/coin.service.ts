@@ -2,7 +2,7 @@
 // internal balance unit: coin (same as token in other parts of the codebase)
 
 const COIN_BALANCE_KEY = "yokbaji_coin_balance";
-const INITIAL_COIN_BALANCE = 100;
+const INITIAL_COIN_BALANCE = 5;
 
 export function getCoinBalance(): number {
   const raw = localStorage.getItem(COIN_BALANCE_KEY);

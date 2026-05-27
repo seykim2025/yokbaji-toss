@@ -234,18 +234,20 @@
 
 /* ── Paid character card ── */
 .characterCardPaid {
-  border-color: #f59e0b;
-  background: linear-gradient(160deg, var(--bg-card) 0%, rgba(245, 158, 11, 0.06) 100%);
+  border: 2px solid #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(245, 158, 11, 0.04));
 }
 
 .charPaidBadge {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  font-size: 14px;
-  background: rgba(0, 0, 0, 0.45);
-  border-radius: 10px;
-  padding: 2px 6px;
+  top: 8px;
+  left: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 2px 8px;
   z-index: 1;
   pointer-events: none;
   filter: sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);

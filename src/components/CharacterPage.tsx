@@ -47,6 +47,8 @@ const WAITING_LINES: Record<string, string[]> = {
     "제발 조금만…",
     "생각이 잘 안 나…",
     "미안, 금방이야…",
+    "잠깐만, 표정 고르는 중이야.",
+    "지금 얼굴 좀 맞춰보고 있어.",
   ],
   ANGRY: [
     "잠깐, 지금 한마디 준비 중이야.",
@@ -59,6 +61,9 @@ const WAITING_LINES: Record<string, string[]> = {
     "지금 집중 중이야.",
     "끊지 마.",
     "곧 폭발한다.",
+    "말은 들었고, 반응 준비 중.",
+    "기다려봐, 대충 나오면 재미없잖아.",
+    "얼굴 확인하고 바로 받아칠게.",
   ],
   SARCASTIC: [
     "아, 잠깐. 웃기게 받아쳐줄게.",
@@ -71,6 +76,8 @@ const WAITING_LINES: Record<string, string[]> = {
     "급하면 먼저 가든가.",
     "이거 생각보다 창의력이 필요해.",
     "알겠어, 잠깐만.",
+    "지금 어떤 표정으로 받을지 고르는 중이야.",
+    "곧 나와. 너무 재촉하지 마.",
   ],
   STOIC: [
     "잠깐.",
@@ -284,7 +291,9 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
               </div>
               <div className={styles.debugRow}>
                 <span className={styles.debugLabel}>응답</span>
-                <span className={styles.debugValue}>{debugReaction.dialogue}</span>
+                <span className={styles.debugValue}>
+                  {Array.isArray(debugReaction.dialogue) ? debugReaction.dialogue.join(" ") : debugReaction.dialogue}
+                </span>
               </div>
               <div className={styles.debugRow}>
                 <span className={styles.debugLabel}>캐시</span>
@@ -388,7 +397,13 @@ export default function CharacterPage({ character, tokens, onBack, onHome, onCha
               </div>
             )}
             <div className={styles.speechBubble}>
-              <p className={styles.dialogueText}>{reaction.dialogue}</p>
+              {Array.isArray(reaction.dialogue) ? (
+                reaction.dialogue.map((line, i) => (
+                  <p key={i} className={styles.dialogueText}>{line}</p>
+                ))
+              ) : (
+                <p className={styles.dialogueText}>{reaction.dialogue}</p>
+              )}
             </div>
           </div>
         )}

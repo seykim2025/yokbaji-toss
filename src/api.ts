@@ -27,7 +27,7 @@ const LOCAL_SLOT_COUNT_KEY = "yokbaji_slot_count";
 const LOCAL_CONVERSATIONS_KEY = "yokbaji_conversations";
 const LOCAL_DEFAULT_IDS_KEY = "yokbaji_default_ids";
 export const FREE_LIMIT = 5;
-export const DEFAULT_SLOT_COUNT = 5;
+export const DEFAULT_SLOT_COUNT = 3;
 export const SLOT_ADD_COST = 10;
 
 // ── Default character protection ─────────────────────────────────────────────
@@ -72,7 +72,7 @@ export interface ConversationRecord {
   id: string;
   characterId: string;
   userMessage: string;
-  dialogue: string;
+  dialogue: string | string[];
   videoUrl: string | null;
   timestamp: string;
 }
@@ -80,7 +80,7 @@ export interface ConversationRecord {
 export function saveConversation(
   characterId: string,
   userMessage: string,
-  dialogue: string,
+  dialogue: string | string[],
   videoUrl: string | null
 ): void {
   try {
@@ -174,6 +174,43 @@ export function deleteCharacterLocally(id: string): void {
   const ids = getSavedCharacterIds();
   ids.delete(id);
   localStorage.setItem(LOCAL_CHAR_IDS_KEY, JSON.stringify([...ids]));
+}
+
+export function getPaidCharacterIds(characters: Character[]): Set<string> {
+  try {
+    const raw = localStorage.getItem("yokbaji_paid_slot_assignments");
+    const assignments: Record<string, boolean> = raw ? JSON.parse(raw) : {};
+    const paidIds = new Set<string>();
+    let hasUpdates = false;
+    let freeUsed = 0;
+
+    const byCreation = [...characters].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+
+    for (const c of byCreation) {
+      if (assignments[c.id] === undefined) {
+        if (freeUsed < DEFAULT_SLOT_COUNT) {
+          assignments[c.id] = false;
+          freeUsed++;
+        } else {
+          assignments[c.id] = true;
+        }
+        hasUpdates = true;
+      } else {
+        if (!assignments[c.id]) freeUsed++;
+      }
+    }
+    if (hasUpdates) {
+      localStorage.setItem("yokbaji_paid_slot_assignments", JSON.stringify(assignments));
+    }
+    for (const c of characters) {
+      if (assignments[c.id]) paidIds.add(c.id);
+    }
+    return paidIds;
+  } catch {
+    return new Set();
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

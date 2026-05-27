@@ -13,7 +13,7 @@ export interface Character {
 export interface ReactionResult {
   character_id: string;
   user_message: string;
-  dialogue: string;
+  dialogue: string | string[];
   dialogue_id?: string;
   video_url: string | null;
   personality_type: Personality;
