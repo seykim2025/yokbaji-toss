@@ -38,6 +38,8 @@ export default function App() {
   const [cachedCharacters, setCachedCharacters] = useState<Character[]>([]);
   const [isLoadingState, setIsLoadingState] = useState(true);
   const [debugLog, setDebugLog] = useState("");
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Override setScreen to push state
   const setScreen = useCallback((newScreen: AppScreen, replace = false) => {
@@ -52,25 +54,30 @@ export default function App() {
   // Listen for popstate
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
+      if (!sessionChecked) return;
       const state = e.state;
       if (state && state.screen) {
         _setScreen(state.screen);
       } else {
-        // Fallback to home
-        _setScreen("home");
+        // Fallback to home only if logged in, else login
+        _setScreen(isLoggedIn ? "home" : "login");
       }
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [sessionChecked, isLoggedIn]);
 
   // On mount: check session, then route to login or home
   useEffect(() => {
 
     checkTossSession().then((result) => {
+      setSessionChecked(true);
       if (result.ok) {
+        setIsLoggedIn(true);
         setUserName(result.user.name ?? null);
         console.log("[yokbaji] toss userKey:", result.user.userKey);
+      } else {
+        setIsLoggedIn(false);
       }
       
       const urlParams = new URLSearchParams(window.location.search);
@@ -82,6 +89,8 @@ export default function App() {
         setScreen("login", true);
       }
     }).catch(() => {
+      setSessionChecked(true);
+      setIsLoggedIn(false);
       setScreen("login", true);
     });
   }, [setScreen]);
@@ -98,7 +107,13 @@ export default function App() {
 
   // Load user state from server after session check
   const loadUserState = useCallback(async () => {
+    if (!isLoggedIn) {
+      setDebugLog(prev => prev + "\nSkipping loadUserState because not logged in.");
+      setIsLoadingState(false);
+      return;
+    }
     try {
+      setIsLoadingState(true);
       console.log("[yokbaji] fetchUserState start...");
       setDebugLog(prev => prev + "\nfetch start");
       const state = await import("./api").then(m => m.fetchUserState());
@@ -127,18 +142,23 @@ export default function App() {
     } catch (e: any) {
       console.error("[yokbaji] load state error:", e);
       setDebugLog(prev => prev + "\nhydration_error: " + e.message);
+      // Ensure we route back to login if session was invalid
+      if (e.message === "Not logged in") {
+        setIsLoggedIn(false);
+        setScreen("login", true);
+      }
     } finally {
       setIsLoadingState(false);
     }
-  }, []);
+  }, [isLoggedIn, setScreen]);
 
   useEffect(() => {
-    if (screen && screen !== "login") {
+    if (sessionChecked && screen && screen !== "login") {
       loadUserState();
-    } else {
+    } else if (sessionChecked && screen === "login") {
       setIsLoadingState(false);
     }
-  }, [screen, loadUserState]);
+  }, [screen, sessionChecked, loadUserState]);
 
   // Listen for Toss WebView close (X button) — show exit confirmation
   useEffect(() => {
