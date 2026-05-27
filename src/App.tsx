@@ -19,7 +19,7 @@ import "./index.css";
 const _t0 = performance.now();
 console.log("[yokbaji] App module loaded:", _t0.toFixed(0) + "ms");
 
-export const APP_VERSION = "v0.1.2";
+export const APP_VERSION = "v0.1.1";
 
 // QA Reset Logic (removed destructive local wipe, server is source of truth)
 
@@ -65,13 +65,6 @@ export default function App() {
 
   // On mount: check session, then route to login or home
   useEffect(() => {
-    // Force QA Reset for version upgrade
-    const lastVersion = localStorage.getItem("yokbaji_version");
-    if (lastVersion !== APP_VERSION) {
-      localStorage.clear();
-      localStorage.setItem("yokbaji_version", APP_VERSION);
-      console.log("[yokbaji] QA Reset: local cache cleared for new version", APP_VERSION);
-    }
 
     checkTossSession().then((result) => {
       if (result.ok) {
@@ -105,23 +98,30 @@ export default function App() {
   // Load user state from server after session check
   const loadUserState = useCallback(async () => {
     try {
+      console.log("[yokbaji] fetchUserState start...");
       const state = await import("./api").then(m => m.fetchUserState());
+      console.log("[yokbaji] fetchUserState response:", state);
+      
       setTokens(state.coinBalance);
       setFreeSlots(state.freeSlotCount);
       setPaidSlots(state.paidSlotCount);
-      // Combine user chars + default chars
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const allChars = [...(state.defaultCharacters as any[]).map((c: any) => ({
+      
+      const defaultCharsMapped = (state.defaultCharacters || []).map((c: any) => ({
         id: c.character_id,
         name: c.name || "Unnamed",
         personality_type: c.personality_type,
         gender_type: c.gender_type,
         image_path: c.image_path,
         created_at: c.created_at,
-      })), ...state.characters];
+        slotType: c.slot_type || "default"
+      }));
+      
+      const allChars = [...defaultCharsMapped, ...(state.characters || [])];
+      console.log("[yokbaji] mergedCharacters:", allChars);
+      
       setCachedCharacters(allChars);
     } catch (e) {
-      console.error("load state error", e);
+      console.error("[yokbaji] load state error:", e);
     } finally {
       setIsLoadingState(false);
     }

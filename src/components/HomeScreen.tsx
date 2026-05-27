@@ -75,6 +75,18 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
   const freeEmptyCount = Math.max(0, freeSlots - freeUsed);
   const paidEmptyCount = Math.max(0, paidSlots - paidUsed);
 
+  console.log("[yokbaji] HomeScreen rendered:", {
+    tokens,
+    freeSlots,
+    paidSlots,
+    renderedCharacters: characters.length,
+    freeUsed,
+    paidUsed,
+    freeEmptyCount,
+    paidEmptyCount,
+    showPaidSlotCTA: freeEmptyCount === 0
+  });
+
   return (
     <div className={styles.container}>
       {/* Header */}
