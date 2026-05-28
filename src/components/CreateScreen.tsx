@@ -277,6 +277,8 @@ export default function CreateScreen({ tokens, isPaidSlot, onCreated, onCharge, 
             )}
           </div>
         )}
+        {/* Explicit spacer to bypass WebKit padding-bottom bug on flex scroll containers */}
+        <div style={{ height: "140px", flexShrink: 0 }} />
       </div>
 
       <div className={styles.footer}>

@@ -84,7 +84,7 @@
 
 .form {
   flex: 1;
-  padding: 20px 16px calc(140px + env(safe-area-inset-bottom));
+  padding: 20px 16px 24px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
