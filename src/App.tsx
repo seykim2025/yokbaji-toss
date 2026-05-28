@@ -69,15 +69,24 @@ export default function App() {
 
   // On mount: check session, then route to login or home
   useEffect(() => {
+    setDebugLog(prev => prev + "\n[boot] session restore start");
+    const beforeRestore = localStorage.getItem("yokbaji_session_user");
+    setDebugLog(prev => prev + "\n[boot] stored before restore: " + (beforeRestore ? "YES" : "NO"));
 
     checkTossSession().then((result) => {
       setSessionChecked(true);
+      setDebugLog(prev => prev + `\n[boot] checkTossSession result: ${result.ok}`);
+      
+      const afterRestore = localStorage.getItem("yokbaji_session_user");
+      setDebugLog(prev => prev + "\n[boot] stored after restore: " + (afterRestore ? "YES" : "NO"));
+
       if (result.ok) {
         setIsLoggedIn(true);
+        setDebugLog(prev => prev + "\n[boot] isLoggedIn: true");
         setUserName(result.user.name ?? null);
-        console.log("[yokbaji] toss userKey:", result.user.userKey);
       } else {
         setIsLoggedIn(false);
+        setDebugLog(prev => prev + "\n[boot] isLoggedIn: false");
       }
       
       const urlParams = new URLSearchParams(window.location.search);
@@ -88,9 +97,10 @@ export default function App() {
       } else {
         setScreen("login", true);
       }
-    }).catch(() => {
+    }).catch((e) => {
       setSessionChecked(true);
       setIsLoggedIn(false);
+      setDebugLog(prev => prev + "\n[boot] checkTossSession error: " + String(e));
       setScreen("login", true);
     });
   }, [setScreen]);
@@ -108,17 +118,15 @@ export default function App() {
   // Load user state from server after session check
   const loadUserState = useCallback(async () => {
     if (!isLoggedIn) {
-      setDebugLog(prev => prev + "\nSkipping loadUserState because not logged in.");
+      setDebugLog(prev => prev + "\n[state] fetchUserState skipped reason: not logged in");
       setIsLoadingState(false);
       return;
     }
     try {
       setIsLoadingState(true);
-      console.log("[yokbaji] fetchUserState start...");
-      setDebugLog(prev => prev + "\nfetch start");
+      setDebugLog(prev => prev + "\n[state] fetchUserState called");
       const state = await import("./api").then(m => m.fetchUserState());
-      console.log("[yokbaji] fetchUserState response:", state);
-      setDebugLog(prev => prev + "\nfetch success, defaultChars.length=" + (state.defaultCharacters?.length ?? "undefined"));
+      setDebugLog(prev => prev + `\n[state] state_api_response ok, tokens=${state.coinBalance}`);
       
       setTokens(state.coinBalance);
       setFreeSlots(state.freeSlotCount);
@@ -135,8 +143,9 @@ export default function App() {
       }));
       
       const allChars = [...defaultCharsMapped, ...(state.characters || [])];
-      console.log("[yokbaji] mergedCharacters:", allChars);
-      setDebugLog(prev => prev + "\nmergedChars=" + allChars.length + ", tokens=" + state.coinBalance);
+      setDebugLog(prev => prev + `\n[state] cachedCharacters.length=${allChars.length}`);
+      setDebugLog(prev => prev + `\n[state] defaultCharacters.length=${defaultCharsMapped.length}`);
+      setDebugLog(prev => prev + `\n[state] freeSlots=${state.freeSlotCount}, paidSlots=${state.paidSlotCount}`);
       
       setCachedCharacters(allChars);
     } catch (e: any) {
@@ -173,6 +182,7 @@ export default function App() {
   }, []);
 
   const handleLoginSuccess = useCallback((user: TossUser) => {
+    setIsLoggedIn(true);
     setUserName(user.name ?? null);
     setScreen("home", true); // Replace login with home
   }, [setScreen]);
