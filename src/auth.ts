@@ -44,33 +44,55 @@ function parseAuthResponse(status: number, data: Record<string, unknown>): Sessi
   return { ok: false, errorCode: errCode ?? "INTERNAL_ERROR" };
 }
 
-export async function checkTossSession(): Promise<SessionResult> {
+export async function checkTossSession(): Promise<SessionResult & { logs: string[] }> {
+  const logs: string[] = [];
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code") || urlParams.get("authorizationCode");
     const referrer = urlParams.get("referrer") || "APP";
 
     if (code) {
-      // Consume the code from URL to prevent reuse on refresh
       window.history.replaceState({}, document.title, window.location.pathname);
       const result = await loginWithToss(code, referrer);
-      if (result.ok) return result;
+      if (result.ok) {
+        logs.push(`checkTossSession: loginWithToss succeeded via URL code`);
+        return { ...result, logs: [...logs, ...(result.logs || [])] };
+      }
     }
 
     const stored = localStorage.getItem(USER_STORAGE_KEY);
-    if (!stored) return { ok: false, errorCode: "SESSION_INVALID" };
+    if (!stored) {
+      logs.push(`checkTossSession failure: no stored session`);
+      return { ok: false, errorCode: "SESSION_INVALID", logs };
+    }
+    
+    logs.push(`stored session raw: ${stored.substring(0, 50)}...`);
     const user = JSON.parse(stored) as TossUser;
-    if (!user?.userKey) return { ok: false, errorCode: "SESSION_INVALID" };
-    return { ok: true, user };
-  } catch {
-    return { ok: false, errorCode: "SESSION_INVALID" };
+    
+    if (!user || !user.userKey) {
+      logs.push(`checkTossSession failure: missing userKey in stored session`);
+      // If invalid, clear it
+      localStorage.removeItem(USER_STORAGE_KEY);
+      return { ok: false, errorCode: "SESSION_INVALID", logs };
+    }
+    
+    logs.push(`stored session parsed userKey exists: true`);
+    logs.push(`stored session parsed userKey masked: ${String(user.userKey).substring(0, 3)}***`);
+    
+    return { ok: true, user, logs };
+  } catch (e) {
+    logs.push(`checkTossSession exception: ${String(e)}`);
+    return { ok: false, errorCode: "SESSION_INVALID", logs };
   }
 }
 
 export async function loginWithToss(
   authorizationCode: string,
   referrer: string
-): Promise<SessionResult> {
+): Promise<SessionResult & { logs: string[] }> {
+  const logs: string[] = [];
+  logs.push(`loginWithToss called, code=${authorizationCode.substring(0, 5)}..., referrer=${referrer}`);
+  
   try {
     const res = await fetch(`${API_BASE}/api/auth/toss-login`, {
       method: "POST",
@@ -78,24 +100,46 @@ export async function loginWithToss(
       body: JSON.stringify({ appSlug: "yokbaji", authorizationCode, referrer }),
     });
     const data = await res.json().catch(() => ({}));
+    logs.push(`loginWithToss response status: ${res.status}, data.ok: ${data.ok}`);
+    
     const result = parseAuthResponse(res.status, data);
+    
     if (result.ok) {
+      logs.push(`loginWithToss parse success`);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result.user));
-      return result;
+      const afterStore = localStorage.getItem(USER_STORAGE_KEY) || "";
+      logs.push(`stored session after login raw: ${afterStore.substring(0, 50)}...`);
+      return { ...result, logs };
     }
-    // Sandbox fallback: when the server can't exchange the sandbox code (e.g. mTLS/API mismatch),
-    // use a mock session so the full UI flow can be tested.
-    if (referrer === "SANDBOX" && result.errorCode === "TOKEN_EXCHANGE_FAILED") {
+    
+    logs.push(`loginWithToss parse failed: ${result.errorCode}`);
+
+    // Sandbox fallback: trigger on ANY auth error if in sandbox
+    if (referrer === "SANDBOX") {
+      logs.push(`Sandbox fallback triggered due to error: ${result.errorCode}`);
       const sandboxUser: TossUser = {
         userKey: `sandbox-${authorizationCode.slice(0, 12)}`,
         name: "샌드박스 유저",
       };
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sandboxUser));
-      return { ok: true, user: sandboxUser };
+      const afterStore = localStorage.getItem(USER_STORAGE_KEY) || "";
+      logs.push(`stored session after sandbox fallback raw: ${afterStore.substring(0, 50)}...`);
+      return { ok: true, user: sandboxUser, logs };
     }
-    return result;
-  } catch {
-    return { ok: false, errorCode: "INTERNAL_ERROR" };
+    
+    return { ...result, logs };
+  } catch (e) {
+    logs.push(`loginWithToss exception: ${String(e)}`);
+    if (referrer === "SANDBOX") {
+      logs.push(`Sandbox fallback triggered due to exception`);
+      const sandboxUser: TossUser = {
+        userKey: `sandbox-${authorizationCode.slice(0, 12)}`,
+        name: "샌드박스 유저",
+      };
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sandboxUser));
+      return { ok: true, user: sandboxUser, logs };
+    }
+    return { ok: false, errorCode: "INTERNAL_ERROR", logs };
   }
 }
 

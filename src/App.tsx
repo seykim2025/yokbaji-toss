@@ -75,6 +75,9 @@ export default function App() {
 
     checkTossSession().then((result) => {
       setSessionChecked(true);
+      if (result.logs) {
+        setDebugLog(prev => prev + "\n" + result.logs.join("\n"));
+      }
       setDebugLog(prev => prev + `\n[boot] checkTossSession result: ${result.ok}`);
       
       const afterRestore = localStorage.getItem("yokbaji_session_user");
@@ -181,8 +184,12 @@ export default function App() {
     }
   }, []);
 
-  const handleLoginSuccess = useCallback((user: TossUser) => {
+  const handleLoginSuccess = useCallback((user: TossUser, logs: string[] = []) => {
     setIsLoggedIn(true);
+    if (logs.length > 0) {
+      setDebugLog(prev => prev + "\n" + logs.join("\n"));
+    }
+    setDebugLog(prev => prev + "\n[boot] handleLoginSuccess: isLoggedIn set to true");
     setUserName(user.name ?? null);
     setScreen("home", true); // Replace login with home
   }, [setScreen]);

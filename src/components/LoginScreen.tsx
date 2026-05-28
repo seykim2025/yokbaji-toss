@@ -16,7 +16,7 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
 };
 
 interface LoginScreenProps {
-  onLoginSuccess: (user: TossUser) => void;
+  onLoginSuccess: (user: TossUser, logs: string[]) => void;
 }
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
@@ -35,7 +35,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const { authorizationCode, referrer } = loginResult;
       const result = await loginWithToss(authorizationCode, referrer);
       if (result.ok) {
-        onLoginSuccess(result.user);
+        onLoginSuccess(result.user, result.logs || []);
       } else {
         setErrorCode(result.errorCode);
       }
