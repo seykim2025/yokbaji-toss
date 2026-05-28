@@ -13,7 +13,7 @@ import { purchaseSlot, SLOT_ADD_COST } from "./api";
 import { getTossUserKey, setScreenAwake, isTossWebView } from "./toss";
 import { checkTossSession } from "./auth";
 import { initAds } from "./lib/tossAds";
-import type { TossUser } from "./auth";
+import type { TossUser, AuthErrorCode } from "./auth";
 import "./index.css";
 
 const _t0 = performance.now();
