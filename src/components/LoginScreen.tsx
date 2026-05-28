@@ -9,6 +9,9 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   INVALID_REQUEST: "요청이 올바르지 않아요.",
   TOKEN_EXCHANGE_FAILED: "토큰 교환에 실패했어요. 다시 시도해 주세요.",
   USER_FETCH_FAILED: "사용자 정보를 가져올 수 없어요.",
+  SESSION_SAVE_FAILED: "로그인 정보를 저장할 수 없어요.",
+  USER_STATE_FAILED: "사용자 상태를 불러올 수 없어요.",
+  NETWORK_ERROR: "네트워크 연결을 확인해주세요.",
   DECRYPT_FAILED: "인증 처리 중 오류가 발생했어요.",
   SESSION_INVALID: "세션이 만료됐어요. 다시 로그인해 주세요.",
   INTERNAL_ERROR: "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
@@ -16,7 +19,7 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
 };
 
 interface LoginScreenProps {
-  onLoginSuccess: (user: TossUser, logs: string[]) => void;
+  onLoginSuccess: (user: TossUser, logs: string[]) => void | Promise<void>;
   onLoginError?: (errorCode: AuthErrorCode, logs: string[]) => void;
 }
 
@@ -37,7 +40,16 @@ export default function LoginScreen({ onLoginSuccess, onLoginError }: LoginScree
       const { authorizationCode, referrer } = loginResult;
       const result = await loginWithToss(authorizationCode, referrer);
       if (result.ok) {
-        onLoginSuccess(result.user, result.logs || []);
+        try {
+          const api = await import("../api");
+          await api.fetchUserState();
+          await onLoginSuccess(result.user, result.logs || []);
+        } catch (err) {
+          const { clearTossSession } = await import("../auth");
+          clearTossSession();
+          setErrorCode("USER_STATE_FAILED");
+          onLoginError?.("USER_STATE_FAILED", [`state fetch failed: ${String(err)}`]);
+        }
       } else {
         setErrorCode(result.errorCode);
         onLoginError?.(result.errorCode, result.logs || []);

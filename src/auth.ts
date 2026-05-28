@@ -7,6 +7,9 @@ export type AuthErrorCode =
   | "INVALID_REQUEST"
   | "TOKEN_EXCHANGE_FAILED"
   | "USER_FETCH_FAILED"
+  | "SESSION_SAVE_FAILED"
+  | "USER_STATE_FAILED"
+  | "NETWORK_ERROR"
   | "DECRYPT_FAILED"
   | "SESSION_INVALID"
   | "INTERNAL_ERROR"
@@ -35,17 +38,39 @@ function findUserKey(obj: any): string | null {
   if (typeof obj === 'string' || typeof obj === 'number') return String(obj);
   
   if (typeof obj === 'object') {
-    const keys = ['userKey', 'user_key', 'userId', 'user_id', 'id', 'uuid', 'sub', 'account_id', 'member_id', 'userToken', 'token'];
-    for (const k of keys) {
+    // 1. Preferred Candidate Fields (Root)
+    const preferredKeys = ['userKey', 'user_key', 'tossUserKey', 'toss_user_key'];
+    for (const k of preferredKeys) {
       if (obj[k] && (typeof obj[k] === 'string' || typeof obj[k] === 'number')) {
         return String(obj[k]);
       }
     }
     
-    for (const k of ['user', 'data', 'result', 'payload', 'account', 'session']) {
-      if (obj[k] && typeof obj[k] === 'object') {
-        const nested = findUserKey(obj[k]);
-        if (nested) return nested;
+    // Acceptable parent object names
+    const targetParents = ['user', 'data', 'result', 'payload', 'session', 'profile', 'account', 'member'];
+    
+    // 2. Preferred Candidate Fields (Nested)
+    for (const pk of targetParents) {
+      const parent = obj[pk];
+      if (parent && typeof parent === 'object') {
+        for (const k of preferredKeys) {
+          if (parent[k] && (typeof parent[k] === 'string' || typeof parent[k] === 'number')) {
+            return String(parent[k]);
+          }
+        }
+      }
+    }
+    
+    // 3. Fallback Candidate Fields (Only inside acceptable parent objects)
+    const fallbackKeys = ['userId', 'user_id', 'id', 'uuid', 'sub', 'account_id', 'memberId'];
+    for (const pk of targetParents) {
+      const parent = obj[pk];
+      if (parent && typeof parent === 'object') {
+        for (const k of fallbackKeys) {
+          if (parent[k] && (typeof parent[k] === 'string' || typeof parent[k] === 'number')) {
+            return String(parent[k]);
+          }
+        }
       }
     }
   }
@@ -59,7 +84,7 @@ function parseAuthResponse(status: number, data: Record<string, unknown>, logs: 
   if (status >= 200 && status < 300 && data.ok === true) {
     const rawKey = findUserKey(data);
     
-    if (!rawKey) {
+    if (!rawKey || String(rawKey).trim().length === 0) {
       logs.push(`parseAuthResponse error: data.ok is true but no valid user identifier found in payload`);
       return { ok: false, errorCode: "USER_FETCH_FAILED" };
     }
@@ -141,6 +166,17 @@ export async function loginWithToss(
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result.user));
       const afterStore = localStorage.getItem(USER_STORAGE_KEY) || "";
       logs.push(`stored session after login raw: ${afterStore.substring(0, 50)}...`);
+      
+      try {
+        const parsed = JSON.parse(afterStore) as TossUser;
+        if (!parsed || !parsed.userKey || String(parsed.userKey).trim().length === 0) {
+          throw new Error("Invalid stored userKey");
+        }
+      } catch (err) {
+        logs.push(`session storage verification failed: ${String(err)}`);
+        return { ok: false, errorCode: "SESSION_SAVE_FAILED", logs };
+      }
+      
       return { ...result, logs };
     }
     
@@ -171,7 +207,7 @@ export async function loginWithToss(
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sandboxUser));
       return { ok: true, user: sandboxUser, logs };
     }
-    return { ok: false, errorCode: "INTERNAL_ERROR", logs };
+    return { ok: false, errorCode: "NETWORK_ERROR", logs };
   }
 }
 
