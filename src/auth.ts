@@ -33,16 +33,16 @@ export interface SessionInvalidResult {
 
 export type SessionResult = SessionCheckResult | SessionInvalidResult;
 
-function findUserKey(obj: any): string | null {
+function findUserKey(obj: any, currentPath = ""): { key: string, path: string } | null {
   if (!obj) return null;
-  if (typeof obj === 'string' || typeof obj === 'number') return String(obj);
+  if (typeof obj === 'string' || typeof obj === 'number') return { key: String(obj), path: currentPath || 'root' };
   
   if (typeof obj === 'object') {
     // 1. Preferred Candidate Fields (Root)
     const preferredKeys = ['userKey', 'user_key', 'tossUserKey', 'toss_user_key'];
     for (const k of preferredKeys) {
       if (obj[k] && (typeof obj[k] === 'string' || typeof obj[k] === 'number')) {
-        return String(obj[k]);
+        return { key: String(obj[k]), path: currentPath ? `${currentPath}.${k}` : k };
       }
     }
     
@@ -55,7 +55,7 @@ function findUserKey(obj: any): string | null {
       if (parent && typeof parent === 'object') {
         for (const k of preferredKeys) {
           if (parent[k] && (typeof parent[k] === 'string' || typeof parent[k] === 'number')) {
-            return String(parent[k]);
+            return { key: String(parent[k]), path: `${currentPath ? currentPath + '.' : ''}${pk}.${k}` };
           }
         }
       }
@@ -68,7 +68,7 @@ function findUserKey(obj: any): string | null {
       if (parent && typeof parent === 'object') {
         for (const k of fallbackKeys) {
           if (parent[k] && (typeof parent[k] === 'string' || typeof parent[k] === 'number')) {
-            return String(parent[k]);
+            return { key: String(parent[k]), path: `${currentPath ? currentPath + '.' : ''}${pk}.${k}` };
           }
         }
       }
@@ -78,15 +78,18 @@ function findUserKey(obj: any): string | null {
 }
 
 function parseAuthResponse(status: number, data: Record<string, unknown>, logs: string[]): SessionResult {
-  logs.push(`parseAuthResponse raw keys: ${Object.keys(data).join(", ")}`);
-  logs.push(`parseAuthResponse raw body snippet: ${JSON.stringify(data).substring(0, 100)}...`);
+  logs.push(`authStatus: ${status}`);
+  logs.push(`authResponseKeys: ${Object.keys(data).join(", ")}`);
   
   if (status >= 200 && status < 300 && data.ok === true) {
-    const rawKey = findUserKey(data);
+    const result = findUserKey(data);
+    const rawKey = result?.key;
+    
+    logs.push(`selectedUserKeyPath: ${result?.path || 'NOT_FOUND'}`);
+    logs.push(`selectedUserKeyExists: ${!!rawKey}`);
     
     if (!rawKey || String(rawKey).trim().length === 0) {
-      logs.push(`parseAuthResponse error: data.ok is true but no valid user identifier found in payload`);
-      return { ok: false, errorCode: "USER_FETCH_FAILED" };
+      return { ok: false, errorCode: "USER_FETCH_FAILED", logs };
     }
     
     logs.push(`parseAuthResponse found valid key candidate: ${String(rawKey).substring(0, 3)}***`);
@@ -165,14 +168,16 @@ export async function loginWithToss(
       logs.push(`loginWithToss parse success`);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result.user));
       const afterStore = localStorage.getItem(USER_STORAGE_KEY) || "";
-      logs.push(`stored session after login raw: ${afterStore.substring(0, 50)}...`);
+      logs.push(`sessionSaved: true`);
       
       try {
         const parsed = JSON.parse(afterStore) as TossUser;
         if (!parsed || !parsed.userKey || String(parsed.userKey).trim().length === 0) {
           throw new Error("Invalid stored userKey");
         }
+        logs.push(`sessionReadback: true`);
       } catch (err) {
+        logs.push(`sessionReadback: false`);
         logs.push(`session storage verification failed: ${String(err)}`);
         return { ok: false, errorCode: "SESSION_SAVE_FAILED", logs };
       }

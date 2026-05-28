@@ -158,6 +158,7 @@ export default function App() {
         setIsLoggedIn(false);
         setScreen("login", true);
       }
+      throw e;
     } finally {
       setIsLoadingState(false);
     }
@@ -183,15 +184,18 @@ export default function App() {
     }
   }, []);
 
-  const handleLoginSuccess = useCallback((user: TossUser, logs: string[] = []) => {
+  const handleLoginSuccess = useCallback(async (user: TossUser, logs: string[] = []) => {
     setIsLoggedIn(true);
     if (logs.length > 0) {
       console.log(logs.join("\n"));
     }
     console.log("[boot] handleLoginSuccess: isLoggedIn set to true");
     setUserName(user.name ?? null);
+    
+    // We throw the error so LoginScreen can catch it and handle UI
+    await loadUserState();
     setScreen("home", true); // Replace login with home
-  }, [setScreen]);
+  }, [loadUserState, setScreen]);
 
   const handleLoginError = useCallback((errorCode: AuthErrorCode, logs: string[] = []) => {
     if (logs.length > 0) {

@@ -53,7 +53,13 @@ export async function fetchUserState(): Promise<UserState> {
   const res = await fetch(`${API_BASE}/api/users/me/state`, {
     headers: { "x-user-key": userKey }
   });
-  if (!res.ok) throw new Error("Failed to fetch user state");
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    const err = new Error("Failed to fetch user state") as any;
+    err.status = res.status;
+    err.bodySnippet = text.substring(0, 100);
+    throw err;
+  }
   
   const raw = await res.json();
   return {
