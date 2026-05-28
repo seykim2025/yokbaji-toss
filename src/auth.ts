@@ -30,11 +30,22 @@ export interface SessionInvalidResult {
 
 export type SessionResult = SessionCheckResult | SessionInvalidResult;
 
-// auth.oneclack.com response shape: { ok: boolean, error?: { code, message }, ...user }
-function parseAuthResponse(status: number, data: Record<string, unknown>): SessionResult {
+function parseAuthResponse(status: number, data: Record<string, unknown>, logs: string[]): SessionResult {
+  logs.push(`parseAuthResponse raw keys: ${Object.keys(data).join(", ")}`);
+  logs.push(`parseAuthResponse raw body snippet: ${JSON.stringify(data).substring(0, 100)}...`);
+  
   if (status >= 200 && status < 300 && data.ok === true) {
+    // Try multiple possible locations for the user key
+    const rawKey = data.userKey || data.user_key || data.id || (data.user as any)?.userKey || (data.user as any)?.id;
+    
+    if (!rawKey) {
+      logs.push(`parseAuthResponse error: data.ok is true but no valid user identifier found in payload`);
+      return { ok: false, errorCode: "USER_FETCH_FAILED" };
+    }
+    
+    logs.push(`parseAuthResponse found valid key candidate: ${String(rawKey).substring(0, 3)}***`);
     const user: TossUser = {
-      userKey: String(data.userKey ?? ""),
+      userKey: String(rawKey),
       ...(data.name ? { name: data.name as string } : {}),
     };
     return { ok: true, user };
@@ -102,7 +113,7 @@ export async function loginWithToss(
     const data = await res.json().catch(() => ({}));
     logs.push(`loginWithToss response status: ${res.status}, data.ok: ${data.ok}`);
     
-    const result = parseAuthResponse(res.status, data);
+    const result = parseAuthResponse(res.status, data, logs);
     
     if (result.ok) {
       logs.push(`loginWithToss parse success`);
