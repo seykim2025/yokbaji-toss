@@ -194,6 +194,13 @@ export default function App() {
     setScreen("home", true); // Replace login with home
   }, [setScreen]);
 
+  const handleLoginError = useCallback((errorCode: AuthErrorCode, logs: string[] = []) => {
+    if (logs.length > 0) {
+      setDebugLog(prev => prev + "\n" + logs.join("\n"));
+    }
+    setDebugLog(prev => prev + `\n[boot] handleLoginError: ${errorCode}`);
+  }, []);
+
   const goHome = useCallback(() => {
     console.log("[yokbaji] return-to-home, cached chars:", cachedCharacters.length);
     setScreen("home");
@@ -245,7 +252,7 @@ export default function App() {
   const content = (() => {
     switch (screen) {
       case "login":
-        return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+        return <LoginScreen onLoginSuccess={handleLoginSuccess} onLoginError={handleLoginError} />;
       case "home":
         return (
           <HomeScreen

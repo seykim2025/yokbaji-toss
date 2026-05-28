@@ -17,9 +17,10 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
 
 interface LoginScreenProps {
   onLoginSuccess: (user: TossUser, logs: string[]) => void;
+  onLoginError?: (errorCode: AuthErrorCode, logs: string[]) => void;
 }
 
-export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
+export default function LoginScreen({ onLoginSuccess, onLoginError }: LoginScreenProps) {
   const [loading, setLoading] = useState(false);
   const [errorCode, setErrorCode] = useState<AuthErrorCode | null>(null);
 
@@ -30,6 +31,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const loginResult = await tossAppLogin();
       if (!loginResult) {
         setErrorCode("LOGIN_UNAVAILABLE");
+        onLoginError?.("LOGIN_UNAVAILABLE", ["tossAppLogin returned null"]);
         return;
       }
       const { authorizationCode, referrer } = loginResult;
@@ -38,9 +40,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         onLoginSuccess(result.user, result.logs || []);
       } else {
         setErrorCode(result.errorCode);
+        onLoginError?.(result.errorCode, result.logs || []);
       }
-    } catch {
+    } catch (e) {
       setErrorCode("INTERNAL_ERROR");
+      onLoginError?.("INTERNAL_ERROR", [`Exception in LoginScreen: ${String(e)}`]);
     } finally {
       setLoading(false);
     }
