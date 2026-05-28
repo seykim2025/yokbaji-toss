@@ -1,6 +1,4 @@
-// AUTH_BASE is empty by default so /api/toss/* is relative — Vite proxy forwards to auth.oneclack.com.
-// Set VITE_AUTH_URL to an absolute URL to override (e.g. production deploy without proxy).
-const AUTH_BASE = import.meta.env.VITE_AUTH_URL ?? "";
+import { API_BASE } from "./api";
 
 const USER_STORAGE_KEY = "yokbaji_session_user";
 
@@ -74,7 +72,7 @@ export async function loginWithToss(
   referrer: string
 ): Promise<SessionResult> {
   try {
-    const res = await fetch(`${AUTH_BASE}/api/toss/login`, {
+    const res = await fetch(`${API_BASE}/api/auth/toss-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ appSlug: "yokbaji", authorizationCode, referrer }),
