@@ -109,6 +109,7 @@
 .photoUpload {
   width: 120px;
   height: 120px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: var(--bg-divider);
   border: 2px dashed var(--border);
