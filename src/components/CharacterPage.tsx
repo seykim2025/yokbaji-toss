@@ -103,6 +103,7 @@ function getWaitingLine(personality: string, exclude: string | null): string {
 function getImageUrl(path: string): string {
   if (!path) return "";
   if (path.startsWith("http")) return path;
+  if (path === "/girl.jpeg" || path === "/man.jpeg") return path;
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 

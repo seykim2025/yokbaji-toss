@@ -327,9 +327,6 @@ export default function App() {
         onConfirm={handleAddSlotConfirm}
         onCancel={() => setShowSlotConfirm(false)}
       />
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.8)", color: "#0f0", fontSize: 10, zIndex: 9999, padding: 8, pointerEvents: "none", whiteSpace: "pre-wrap" }}>
-        {debugLog}
-      </div>
     </>
   );
 }

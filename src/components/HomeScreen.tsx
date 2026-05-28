@@ -51,10 +51,9 @@ const PERSONALITY_LABEL: Record<string, string> = {
 function getImageUrl(path: string): string {
   if (!path) return "";
   if (path.startsWith("http")) return path;
+  if (path === "/girl.jpeg" || path === "/man.jpeg") return path;
   return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
 }
-
-
 
 export default function HomeScreen({ tokens, freeSlots, paidSlots, version, userName, cachedCharacters, onCreateNew, onSelectCharacter, onAddSlot, onCharge }: Props) {
 
@@ -74,18 +73,6 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
 
   const freeEmptyCount = Math.max(0, freeSlots - freeUsed);
   const paidEmptyCount = Math.max(0, paidSlots - paidUsed);
-
-  console.log("[yokbaji] HomeScreen rendered:", {
-    tokens,
-    freeSlots,
-    paidSlots,
-    renderedCharacters: characters.length,
-    freeUsed,
-    paidUsed,
-    freeEmptyCount,
-    paidEmptyCount,
-    showPaidSlotCTA: freeEmptyCount === 0
-  });
 
   return (
     <div className={styles.container}>
@@ -131,10 +118,6 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
                         alt={c.name}
                         className={styles.cardImage}
                         loading="lazy"
-                        onLoad={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          console.log("[yokbaji] thumbnail loaded:", img.src.split("/").pop());
-                        }}
                         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                       />
                     ) : (
@@ -193,15 +176,6 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
 
       {/* Banner ad — always visible at bottom, outside scroll area */}
       <MainFooterBannerAd />
-      <div style={{ position: "fixed", top: 50, left: 0, right: 0, background: "rgba(255,0,0,0.8)", color: "#fff", fontSize: 10, zIndex: 9999, padding: 8, pointerEvents: "none", whiteSpace: "pre-wrap" }}>
-        {`HomeScreen Rendered:
-tokens=${tokens}
-characters.length=${characters.length}
-freeSlots=${freeSlots}, freeUsed=${freeUsed}
-paidSlots=${paidSlots}, paidUsed=${paidUsed}
-freeEmpty=${freeEmptyCount}, paidEmpty=${paidEmptyCount}
-showPaidCTA=${freeEmptyCount === 0}`}
-      </div>
     </div>
   );
 }
