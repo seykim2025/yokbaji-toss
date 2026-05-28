@@ -26,12 +26,10 @@ interface LoginScreenProps {
 export default function LoginScreen({ onLoginSuccess, onLoginError }: LoginScreenProps) {
   const [loading, setLoading] = useState(false);
   const [errorCode, setErrorCode] = useState<AuthErrorCode | null>(null);
-  const [lastLogs, setLastLogs] = useState<string[]>([]);
 
   const handleLogin = async () => {
     setLoading(true);
     setErrorCode(null);
-    setLastLogs([]);
     try {
       const loginResult = await tossAppLogin();
       if (!loginResult) {
@@ -56,14 +54,12 @@ export default function LoginScreen({ onLoginSuccess, onLoginError }: LoginScree
           logs.push(`stateErrorCode: ${err?.message || 'unknown'}`);
           logs.push(`stateErrorBodySnippet: ${err?.bodySnippet || 'none'}`);
           
-          setLastLogs(logs);
           setErrorCode("USER_STATE_FAILED");
           onLoginError?.("USER_STATE_FAILED", logs);
         }
       } else {
         const logs = result.logs || [];
         logs.push(`stateCalled: false`);
-        setLastLogs(logs);
         setErrorCode(result.errorCode);
         onLoginError?.(result.errorCode, logs);
       }
@@ -73,11 +69,6 @@ export default function LoginScreen({ onLoginSuccess, onLoginError }: LoginScree
     } finally {
       setLoading(false);
     }
-  };
-
-  const getLogValue = (prefix: string) => {
-    const line = lastLogs.find(l => l.startsWith(prefix));
-    return line ? line.replace(prefix, "").trim() : "N/A";
   };
 
   return (
@@ -92,19 +83,6 @@ export default function LoginScreen({ onLoginSuccess, onLoginError }: LoginScree
         {errorCode && (
           <div className={styles.errorBox}>
             {ERROR_MESSAGES[errorCode]}
-            <div style={{ fontSize: 10, marginTop: 8, textAlign: 'left', wordBreak: 'break-all', opacity: 0.8 }}>
-              <div>authStatus: {getLogValue('authStatus:')}</div>
-              <div>authResponseKeys: {getLogValue('authResponseKeys:')}</div>
-              <div>selectedUserKeyPath: {getLogValue('selectedUserKeyPath:')}</div>
-              <div>selectedUserKeyExists: {getLogValue('selectedUserKeyExists:')}</div>
-              <div>sessionSaved: {getLogValue('sessionSaved:')}</div>
-              <div>sessionReadback: {getLogValue('sessionReadback:')}</div>
-              <div>stateCalled: {getLogValue('stateCalled:')}</div>
-              <div>stateStatus: {getLogValue('stateStatus:')}</div>
-              <div>stateErrorCode: {getLogValue('stateErrorCode:')}</div>
-              <div>stateErrorBodySnippet: {getLogValue('stateErrorBodySnippet:')}</div>
-              <div>finalErrorCode: {errorCode}</div>
-            </div>
           </div>
         )}
         <button

@@ -48,6 +48,7 @@ export default function MainFooterBannerAd() {
           minHeight: adVisible ? 96 : 60,
           overflow: "hidden",
           transition: "min-height 0.2s",
+          flexShrink: 0,
         }}
       />
     );
@@ -63,6 +64,7 @@ export default function MainFooterBannerAd() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      flexShrink: 0,
     }}>
       <span style={{ fontSize: 11, color: "#9ca3af" }}>광고 영역</span>
     </div>

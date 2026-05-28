@@ -5,6 +5,7 @@
   background: var(--bg-primary);
   animation: fadeIn 0.3s ease-out;
   position: relative;
+  min-height: 0;
 }
 
 /* ── Header ── */
@@ -16,6 +17,7 @@
   border-bottom: 1px solid var(--border);
   min-height: 56px;
   background: var(--bg-secondary);
+  flex-shrink: 0;
 }
 
 .backBtn {
@@ -169,7 +171,9 @@
   flex-direction: column;
   align-items: center;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 16px 20px 20px;
+  min-height: 0;
 }
 
 /* ── Idle: profile view ── */
@@ -408,6 +412,7 @@
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .freeLabel {
@@ -538,9 +543,10 @@
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding: 10px 16px 14px;
+  padding: 10px 16px max(14px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   background: var(--bg-secondary);
+  flex-shrink: 0;
 }
 
 .textarea {
