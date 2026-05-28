@@ -30,13 +30,34 @@ export interface SessionInvalidResult {
 
 export type SessionResult = SessionCheckResult | SessionInvalidResult;
 
+function findUserKey(obj: any): string | null {
+  if (!obj) return null;
+  if (typeof obj === 'string' || typeof obj === 'number') return String(obj);
+  
+  if (typeof obj === 'object') {
+    const keys = ['userKey', 'user_key', 'userId', 'user_id', 'id', 'uuid', 'sub', 'account_id', 'member_id', 'userToken', 'token'];
+    for (const k of keys) {
+      if (obj[k] && (typeof obj[k] === 'string' || typeof obj[k] === 'number')) {
+        return String(obj[k]);
+      }
+    }
+    
+    for (const k of ['user', 'data', 'result', 'payload', 'account', 'session']) {
+      if (obj[k] && typeof obj[k] === 'object') {
+        const nested = findUserKey(obj[k]);
+        if (nested) return nested;
+      }
+    }
+  }
+  return null;
+}
+
 function parseAuthResponse(status: number, data: Record<string, unknown>, logs: string[]): SessionResult {
   logs.push(`parseAuthResponse raw keys: ${Object.keys(data).join(", ")}`);
   logs.push(`parseAuthResponse raw body snippet: ${JSON.stringify(data).substring(0, 100)}...`);
   
   if (status >= 200 && status < 300 && data.ok === true) {
-    // Try multiple possible locations for the user key
-    const rawKey = data.userKey || data.user_key || data.id || (data.user as any)?.userKey || (data.user as any)?.id;
+    const rawKey = findUserKey(data);
     
     if (!rawKey) {
       logs.push(`parseAuthResponse error: data.ok is true but no valid user identifier found in payload`);
