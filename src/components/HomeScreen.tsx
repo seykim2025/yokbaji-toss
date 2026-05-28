@@ -162,14 +162,12 @@ export default function HomeScreen({ tokens, freeSlots, paidSlots, version, user
               </button>
             ))}
 
-            {/* Add slot button (always last, only if no free slots) */}
-            {freeEmptyCount === 0 && (
-              <button className={styles.addSlotCard} onClick={onAddSlot}>
-                <span className={styles.addSlotIcon}>＋</span>
-                <span className={styles.addSlotLabel}>슬롯 추가</span>
-                <span className={styles.addSlotCost}>{10} 🪙</span>
-              </button>
-            )}
+            {/* Add slot button (always last) */}
+            <button className={styles.addSlotCard} onClick={onAddSlot}>
+              <span className={styles.addSlotIcon}>＋</span>
+              <span className={styles.addSlotLabel}>슬롯 추가</span>
+              <span className={styles.addSlotCost}>{10} 🪙</span>
+            </button>
           </div>
         )}
       </div>

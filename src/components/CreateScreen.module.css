@@ -84,7 +84,7 @@
 
 .form {
   flex: 1;
-  padding: 20px 16px 24px;
+  padding: 20px 16px calc(140px + env(safe-area-inset-bottom));
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -92,7 +92,11 @@
 }
 
 .footer {
-  flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   background: var(--bg-primary);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);

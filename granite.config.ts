@@ -5,7 +5,7 @@ export default defineConfig({
   brand: {
     displayName: "욕바지",
     primaryColor: "#3182f6",
-    icon: "https://yokbaji-toss.vercel.app/아이콘1_600.png",
+    icon: "https://yokbaji-engine.vercel.app/아이콘1_600.png",
   },
   web: {
     host: "10.1.1.16",
