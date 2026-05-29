@@ -29,10 +29,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body, #root {
-  height: 100dvh;
+html, body {
+  height: 100%;
   width: 100%;
   overflow: hidden;
+  position: fixed;
 }
 
 body {
@@ -45,6 +46,8 @@ body {
 }
 
 #root {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   max-width: 375px;

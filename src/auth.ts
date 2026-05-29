@@ -89,7 +89,7 @@ function parseAuthResponse(status: number, data: Record<string, unknown>, logs: 
     logs.push(`selectedUserKeyExists: ${!!rawKey}`);
     
     if (!rawKey || String(rawKey).trim().length === 0) {
-      return { ok: false, errorCode: "USER_FETCH_FAILED", logs };
+      return { ok: false, errorCode: "USER_FETCH_FAILED" };
     }
     
     logs.push(`parseAuthResponse found valid key candidate: ${String(rawKey).substring(0, 3)}***`);

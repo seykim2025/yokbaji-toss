@@ -91,13 +91,17 @@ export async function showRewardedAd(
       onError(new Error("showRewardedAd: not supported"));
       return null;
     }
+    let earned = false;
     const cleanup = sdk.showFullScreenAd({
       options: { adGroupId },
       onEvent: (e) => {
         if (e.type === "userEarnedReward") {
+          earned = true;
           onEarnedReward();
         } else if (e.type === "dismissed") {
-          onDismissedWithoutReward();
+          if (!earned) {
+            onDismissedWithoutReward();
+          }
         }
       },
       onError,

@@ -240,12 +240,64 @@ export async function getCharacter(id: string): Promise<Character> {
   return mapCharacter(raw);
 }
 
+const DEFAULT_CHARACTER_LOCAL_REACTION_ASSETS: Record<string, string[]> = {
+  default_1: ["F_WEAK_01", "F_WEAK_02", "F_WEAK_03"],
+  default_2: ["M_ANGRY_01", "M_ANGRY_02", "M_ANGRY_03"],
+};
+
+const DEFAULT_CHARACTER_LOCAL_DIALOGUES: Record<string, string[]> = {
+  default_1: [
+    "음... 그래, 알겠어.",
+    "아, 진짜? 몰랐네...",
+    "휴... 너무 걱정하지 마.",
+    "내가 들어줄게, 계속 얘기해봐."
+  ],
+  default_2: [
+    "뭐라고? 장난하냐!",
+    "아 진짜 짜증나게 하네!",
+    "어쩌라고! 똑바로 말해!",
+    "야, 그건 선 넘었지!"
+  ]
+};
+
 export async function generateReaction(
   characterId: string,
   userMessage: string,
   recentDialogueIds?: string[],
   recentBaseAssetCodes?: string[],
 ): Promise<ReactionResult> {
+  // Frontend bypass for default characters
+  if (characterId === "default_1" || characterId === "default_2") {
+    // Artificial delay to show loading UI (300ms ~ 800ms)
+    await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 500));
+    
+    const assets = DEFAULT_CHARACTER_LOCAL_REACTION_ASSETS[characterId];
+    const dialogues = DEFAULT_CHARACTER_LOCAL_DIALOGUES[characterId];
+    
+    const availableAssets = assets.filter(a => !(recentBaseAssetCodes || []).includes(a));
+    const assetPool = availableAssets.length > 0 ? availableAssets : assets;
+    const selectedAsset = assetPool[Math.floor(Math.random() * assetPool.length)];
+    
+    const selectedDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
+    
+    const isWeak = characterId === "default_1";
+    
+    return {
+      ok: true,
+      character_id: characterId,
+      user_message: userMessage,
+      input_tag: "neutral",
+      intensity: 0.5,
+      base_asset_code: selectedAsset,
+      video_url: `/assets/default/${selectedAsset}.mp4`,
+      cached: true,
+      dialogue: selectedDialogue,
+      dialogue_id: `local_mock_${Date.now()}`,
+      personality_type: isWeak ? "WEAK" : "ANGRY",
+      gender_type: isWeak ? "F" : "M",
+    } as ReactionResult;
+  }
+
   const res = await fetch(`${API_BASE}/api/reactions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -262,8 +314,8 @@ export async function generateReaction(
     throw new Error(err.error || `HTTP ${res.status}`);
   }
   const data = await res.json();
-  // Resolve relative video URLs
-  if (data.video_url && !data.video_url.startsWith("http")) {
+  // Resolve relative video URLs (but leave local /assets paths relative so Toss WebView serves them)
+  if (data.video_url && !data.video_url.startsWith("http") && !data.video_url.startsWith("/assets/")) {
     data.video_url = `${API_BASE}${data.video_url}`;
   }
   return data;
